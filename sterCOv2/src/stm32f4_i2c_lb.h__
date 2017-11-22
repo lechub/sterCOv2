@@ -1,0 +1,38 @@
+/*
+ * stm32f4_stm32f4.h
+ *
+ *  Created on: 30.06.2017
+ *      Author: lechu
+ */
+
+#ifndef STM32F4_I2C_LB_H___
+#define STM32F4_I2C_LB_H___
+
+#include "stm32f4xx.h"
+
+/*
+ * stm32f4_i2c_lb.c
+ *
+ *  Created on: 30.06.2017
+ *      Author: lechu
+ */
+
+typedef enum{
+	I2C_OK,
+	I2C_TIMEOUT,
+	I2C_ERROR,
+}I2C_Result;
+
+/**
+ * inicjalizacja i2c.
+ */
+I2C_Result i2c_init(I2C_TypeDef *i2cPtr, uint32_t Timeout, uint32_t(*getTick)() );
+
+
+
+
+I2C_Result i2c_MasterTransmit(uint16_t DevAddress, uint8_t *pData, uint16_t Size);
+
+
+
+#endif /* STM32F4_I2C_LB_H___ */

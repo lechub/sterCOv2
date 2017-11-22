@@ -1,0 +1,56 @@
+/*
+ * I2Cstm32F411.h
+ *
+ *  Created on: 19 lis 2017
+ *      Author: lechu
+ */
+
+#ifndef I2CSTM32F411_H__
+#define I2CSTM32F411_H__
+
+#include "stm32f4xx.h"
+#include "Fifo.h"
+#include "Gpio.h"
+
+class I2C_stm32F411 {
+private:
+	I2C_TypeDef * i2c;// = I2C1;
+	uint8_t i2cBuffer[100];
+	Fifo i2cFifo = Fifo(i2cBuffer, 100);
+	static constexpr uint8_t I2C_BLOCK_START = 0xfe;
+	uint16_t slaveAdr = 0;
+	Gpio gpioLcdReset = Gpio(GPIOC,7);
+	Gpio gpioSCL = Gpio(GPIOB,6);
+	Gpio gpioSDA = Gpio(GPIOB,7);
+
+
+	bool init();
+
+public:
+	bool init(I2C_TypeDef * i2cPtr){
+		i2c = i2cPtr;
+		return init();
+	}
+	I2C_stm32F411();
+	virtual ~I2C_stm32F411();
+
+
+
+
+};
+
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+void I2C1_EV_IRQHandler(void) __attribute__ ((interrupt));
+void I2C1_ER_IRQHandler(void) __attribute__ ((interrupt));
+void DMA1_Stream0_IRQHandler(void) __attribute__ ((interrupt));
+void ADC_IRQHandler(void) __attribute__ ((interrupt));
+
+#ifdef __cplusplus
+ }
+#endif
+
+#endif /* I2CSTM32F411_H__ */

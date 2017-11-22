@@ -1,0 +1,82 @@
+   1              		.cpu cortex-m4
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 6
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"Trace.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.section	.gnu.lto_.inline.e6f57be553e0292e,"",%progbits
+  15 0000 789C6365 		.ascii	"x\234ce`\002Bd\000\000\000\250\000\012"
+  15      60024264 
+  15      000000A8 
+  15      000A
+  16              		.text
+  17              		.section	.gnu.lto_.symbol_nodes.e6f57be553e0292e,"",%progbits
+  18 0000 789C6365 		.ascii	"x\234ce`\002B\020\000\000\000X\000\012"
+  18      60024210 
+  18      00000058 
+  18      000A
+  19              		.text
+  20              		.section	.gnu.lto_.refs.e6f57be553e0292e,"",%progbits
+  21 0000 789C6365 		.ascii	"x\234ce`b`d\000\002\000\000I\000\011"
+  21      60626064 
+  21      00020000 
+  21      490009
+  22              		.text
+  23              		.section	.gnu.lto_.decls.e6f57be553e0292e,"",%progbits
+  24 0000 789C6365 		.ascii	"x\234ce`b\000\001F V\001\342\377@\000b\257e \000\000"
+  24      60620001 
+  24      46205601 
+  24      E2FF4000 
+  24      62AF6520 
+  25 0016 BC1D04D7 		.ascii	"\274\035\004\327"
+  26              		.text
+  27              		.section	.gnu.lto_.symtab.e6f57be553e0292e,"",%progbits
+  28              		.text
+  29              		.section	.gnu.lto_.opts,"",%progbits
+  30 0000 272D666D 		.ascii	"'-fmath-errno' '-fsigned-zeros' '-ftrapping-math' '"
+  30      6174682D 
+  30      6572726E 
+  30      6F272027 
+  30      2D667369 
+  31 0033 2D666E6F 		.ascii	"-fno-trapv' '-fno-strict-overflow' '-fno-openmp' '-"
+  31      2D747261 
+  31      70762720 
+  31      272D666E 
+  31      6F2D7374 
+  32 0066 666E6F2D 		.ascii	"fno-openacc' '-dD' '-mcpu=cortex-m4' '-mthumb' '-mf"
+  32      6F70656E 
+  32      61636327 
+  32      20272D64 
+  32      44272027 
+  33 0099 6C6F6174 		.ascii	"loat-abi=soft' '-g3' '-O0' '-fmessage-length=0' '-f"
+  33      2D616269 
+  33      3D736F66 
+  33      74272027 
+  33      2D673327 
+  34 00cc 7369676E 		.ascii	"signed-char' '-ffunction-sections' '-fdata-sections"
+  34      65642D63 
+  34      68617227 
+  34      20272D66 
+  34      66756E63 
+  35 00ff 2720272D 		.ascii	"' '-flto' '-fno-move-loop-invariants'\000"
+  35      666C746F 
+  35      2720272D 
+  35      666E6F2D 
+  35      6D6F7665 
+  36              		.text
+  37              		.comm	__gnu_lto_v1,1,1
+  38              		.comm	__gnu_lto_slim,1,1
+  39              		.ident	"GCC: (GNU Tools for ARM Embedded Processors 6-2017-q2-update) 6.3.1 20170620 (release) [AR
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 Trace.c
+                            *COM*:0000000000000001 __gnu_lto_v1
+                            *COM*:0000000000000001 __gnu_lto_slim
+
+NO UNDEFINED SYMBOLS

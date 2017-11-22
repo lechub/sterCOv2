@@ -1,0 +1,60 @@
+
+Oryginalny sterownik, złącza tyl: 
+
+Zasilanie 230AC     4w
+podajnik            4w
+wentylator          4w
+pompaCO pompaCWU    4w
+reg_pogodowy        2w ???
+czujnikPodajnik     2w
+CzujnikCWU          2w
+czujnikCO           2w
+Termik              2w
+
+
+
+
+ADC:
+	SGN	| GPIO	| CN7	| CN10	|
+1 AVCC				7
+2 AVCC				7
+3 AVCC				7
+4 AVCC				7
+5 AVCC				7
+6 AVCC				7
+7 AVCC				7
+8 AVCC				7
+
+
+****************************************
+złącza Nucleo lewo:
+
+PompaCO     PC10
+pompa CWU   PC12
+podajnik    PD2
+            PC11        ??
+PA13    -left
+PA14    right
+PA15    push
+
+PB7     i2c SDA
+tCWU    PC2 ADC1_12
+tCO     PC3 ADC1_13
+tPodajnik   PC1 ADC1_11
+tEX     PC0 AD1_10
+        PA4 ADC1_4  ??
+        PB0 ADC1_8  ??
+        
+
+złącza Nucleo prawo:
+
+PA6     dmuchawa
+PB6     i2c SCL
+PC7     i2c RST
+PA9     RS TX
+PA10    RS RX
+PC9     BTN1
+PC8     BTN2
+PC6     BTN3
+PC5     BTN4
+

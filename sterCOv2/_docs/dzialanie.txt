@@ -1,0 +1,41 @@
+
+
+przyciski:
+Enter, góra, Dół, menu
+
+ekran:
+Temperatura C.O.    35 oC
+ustawione           55 oC
+
+1.Praca ręczna
+2.Podajnik opału
+ 2.1 Podajnik praca(min, 4 sek)
+ 2.2 Podajnik przerwa(5 min, sek)
+ 2.3 Podajnik opoznienie(min, 30 sek)
+3. Podtrzymanie palenia
+ 3.1 Podtrzymanie praca ( 3 sek) 1-59
+ 3.2 Podtrzymanie przerwa ( 29 min )
+ 3.3 Opoznienie wyłączenia dmuchawy (25 sek)
+4. Pompa C.O.
+ Temp zal. 40 oC 50-80
+5. Alarm spadku temperatury 
+ 1 godz min
+6. Dmuchawa
+ moc 1-4
+7. Histereza
+ 2 oC (2-9)
+8. Pompa CWU
+ Temp załączenia 50 oC
+ 8.1 Histereza 3 oC
+ 8.2 Tryb letni nieaktywny/aktywny
+9. Opcje serwisowe
+ 9.1 Ustawienia fabryczne
+ 9.2 Pompa CWU aktywna/nieaktywna
+ 9.3 Temperatura podajnika alarm 85 oC
+ 
+ 
+ wyjścia:
+ Zasilanie, podajnik, wentylator, pompa CO, pompa CWU, 
+ regulator pokojowy, czujnik podajnik, czujnik CWU, czujnik CO, termik
+ 
+ diody: alarm, wentylator, podajnik, pompa CO, pompa CWU

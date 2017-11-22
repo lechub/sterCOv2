@@ -1,0 +1,262 @@
+/*
+ * stm32f4_i2c_lb.c
+ *
+ *  Created on: 30.06.2017
+ *      Author: lechu
+ */
+
+#include "stm32f4_i2c_lb.h"
+
+
+uint32_t (* getTickMs) ();
+I2C_TypeDef * i2c;
+uint32_t i2cTimeout;
+uint32_t i2cTickstart;
+
+uint8_t AddressingMode = 10;
+
+
+I2C_Result i2c_waitUntilFlagWTimeout(__IO uint32_t *regPtr, uint32_t flag, bool unlockState);
+
+
+I2C_Result i2c_init(I2C_TypeDef *i2cPtr, uint32_t Timeout, uint32_t(*getTick)()){
+	i2c = i2cPtr;
+	i2cTimeout = Timeout;
+	getTickMs = getTick;
+	// ToDo i2C init
+	//i2c->CR2 = 0;
+	//i2c->CR1 = 0;
+
+	return I2C_Result::I2C_OK;
+}
+
+
+/** odczekanie na flage lub timeout
+ * @return true = flaga w stanie unlockstate, false - timeout
+ */
+I2C_Result i2c_waitUntilFlagWTimeout(__IO uint32_t *regPtr, uint32_t flag, bool unlockState){
+	while ((getTickMs() - i2cTickstart) <= i2cTimeout){
+		uint32_t flagState = *regPtr & flag;	//
+		if (flagState == 0x0U){	// flaga zgaszona?
+			if (!unlockState) return I2C_Result::I2C_OK;	// gdy zgaszona to powrot OK
+		}else{					// flaga zapalona
+			if (unlockState) return I2C_Result::I2C_OK;		// gdy zapalona to powrot OK
+		}
+	}
+	return I2C_Result::I2C_TIMEOUT;	// byl timeout
+}
+
+
+
+I2C_Result i2c_MasterTransmit(uint16_t DevAddress, uint8_t *pData, uint16_t Size){
+
+	i2cTickstart = getTickMs();	// Init tickstart for timeout management
+
+	I2C_Result result;
+	result = i2c_waitUntilFlagWTimeout(&i2c->SR2, I2C_SR2_BUSY, false);		// Check for busy or Timeout
+	if (result != I2C_Result::I2C_OK) return result;
+
+	i2c->CR1 &= ~I2C_CR1_POS;	// Disable Pos  - error checking
+
+	// poczatek - nadanie START
+	i2c->CR1 |= I2C_CR1_START;
+
+	result = i2c_waitUntilFlagWTimeout(&i2c->SR1, I2C_SR1_SB, true);		// Check for start condition or Timeout
+	if (result != I2C_Result::I2C_OK) return result;
+
+	// Send Slave Address
+	if (AddressingMode == 7){// 7-bit header
+		i2c->DR =  ((uint8_t)(DevAddress & (~I2C_OAR1_ADD0)));		// adres bez najmlodszego bitu?
+	}
+	else
+	{
+		// 10-bit header
+		i2c->DR = ((uint8_t)((uint16_t)((uint16_t)(((uint16_t)(DevAddress & (uint16_t)(I2C_OAR1_ADD8_9))) >> 7U) | (uint16_t)(0x00F0U))));
+
+		while (!(i2c->SR1 & I2C_SR1_ADD10)){		// Check for adres10bit header or Timeout
+			if (i2c->SR1 & I2C_SR1_AF){				// blad ACK Failure?
+				i2c->CR1 |= I2C_CR1_STOP;
+				i2c->SR1 = ~I2C_SR1_AF;	// skasowanie flagi AF
+				return I2C_Result::I2C_ERROR;
+			}
+			if((getTickMs() - i2cTickstart ) > i2cTimeout){
+				return I2C_Result::I2C_TIMEOUT;
+			}
+		}
+
+		// 10-bit adres
+		i2c->DR =  ((uint8_t)((uint16_t)(DevAddress & (uint16_t)(0x00FFU))));
+		while (!(i2c->SR1 & I2C_SR1_ADDR)){		// Check for adres sent or Timeout
+			if (i2c->SR1 & I2C_SR1_AF){
+				i2c->CR1 |= I2C_CR1_STOP;
+				i2c->SR1 = ~I2C_SR1_AF;	// skasowanie flagi AF
+				return I2C_Result::I2C_ERROR;
+			}
+			if((getTickMs() - i2cTickstart ) > i2cTimeout){
+				return I2C_Result::I2C_TIMEOUT;
+			}
+		}
+	}
+
+	// Clear ADDR flag  - by reading SR1 and SR2 next/
+	do{
+		__IO uint32_t tmpreg = 0x00U;
+		tmpreg = i2c->SR1;
+		tmpreg = i2c->SR2;
+		//UNUSED(tmpreg);
+	} while(0);
+
+	while(Size > 0U){		// Wait until TXE flag is set
+
+		while (!(i2c->SR1 & I2C_SR1_TXE)){		// Wait until TXE flag is set or Timeout
+			if (i2c->SR1 & I2C_SR1_AF){
+				i2c->SR1 = ~I2C_SR1_AF;	// skasowanie flagi AF
+				return I2C_Result::I2C_ERROR;	// blad ACK Failure?
+			}
+			if((getTickMs() - i2cTickstart ) > i2cTimeout){
+				return I2C_Result::I2C_TIMEOUT;
+			}
+		}
+		i2c->CR1 |= I2C_CR1_STOP;
+
+
+		i2c->DR = (*pData++);  // Write data to DR
+		Size--;
+
+		if((i2c->SR1 & I2C_SR1_BTF) && (Size != 0U)){
+
+			i2c->DR = (*pData++);/* Write data to DR */
+			Size--;
+		}
+
+		/* Wait until BTF flag is set */
+		while (!(i2c->SR1 & I2C_SR1_BTF)){		// Wait until TXE flag is set or Timeout
+			if (i2c->SR1 & I2C_SR1_AF){
+				i2c->SR1 = ~I2C_SR1_AF;			// skasowanie flagi AF
+				i2c->CR1 |= I2C_CR1_STOP;		// Generate Stop
+				return I2C_Result::I2C_ERROR;	// blad ACK Failure?
+			}
+			if((getTickMs() - i2cTickstart ) > i2cTimeout){
+				return I2C_Result::I2C_TIMEOUT;
+			}
+		}
+
+		i2c->CR1 |= I2C_CR1_STOP;/* Generate Stop */
+
+
+	}
+	return I2C_Result::I2C_OK;
+}
+
+
+
+
+
+/*
+ *
+ *
+
+
+bool i2c_MasterTransmit(uint16_t DevAddress, uint8_t *pData, uint16_t Size){
+
+	i2cTickstart = getTickMs();	// Init tickstart for timeout management
+
+	while (i2c->SR2 & I2C_SR2_BUSY){		// Check for busy or Timeout
+		if((getTickMs() - tickstart ) > i2cTimeout){
+			return false;
+		}
+	}
+//	if (!waitUntilFlagState(&i2c->SR2, I2C_SR2_BUSY, false, i2cTimeout )) return false;
+
+
+	i2c->CR1 &= ~I2C_CR1_POS;	// Disable Pos  - error checking
+
+	// poczatek
+	i2c->CR1 |= I2C_CR1_START;
+
+	while ((!i2c->SR1 & I2C_SR1_SB)){		// Check for start condition or Timeout
+		if((getTickMs() - tickstart ) > i2cTimeout){
+			return false;
+		}
+	}
+//	if (!waitUntilFlagState(&i2c->SR1, I2C_SR1_SB, true, i2cTimeout )) return false;
+
+	// Send Slave Address
+	//	if (I2C_ADDRESSINGMODE_7BIT){
+	//		i2c->DR =  ((uint8_t)(DevAddress & (~I2C_OAR1_ADD0)));
+	//
+	//	}else
+	{
+		// 10-bit header
+		i2c->DR = ((uint8_t)((uint16_t)((uint16_t)(((uint16_t)(DevAddress & (uint16_t)(I2C_OAR1_ADD8_9))) >> 7U) | (uint16_t)(0x00F0U))));
+		while (i2c->SR1 & I2C_SR1_ADD10){		// Check for adres10bit header or Timeout
+			if (i2c->SR1 & I2C_SR1_AF) return false;	// blad ACK Failure?
+			if((getTickMs() - tickstart ) > i2cTimeout){
+				return false;
+			}
+		}
+
+		// 10-bit adres
+		i2c->DR =  ((uint8_t)((uint16_t)(DevAddress & (uint16_t)(0x00FFU))));
+		while (i2c->SR1 & I2C_SR1_ADDR){		// Check for adres sent or Timeout
+			if (i2c->SR1 & I2C_SR1_AF) return false;	// blad ACK Failure?
+			if((getTickMs() - tickstart ) > i2cTimeout){
+				return false;
+			}
+		}
+	}
+
+	// Clear ADDR flag  - by reading SR1 and SR2 next/
+	do{
+		__IO uint32_t tmpreg = 0x00U;
+		tmpreg = i2c->SR1;
+		tmpreg = i2c->SR2;
+		//UNUSED(tmpreg);
+	} while(0);
+
+	while(Size > 0U){		// Wait until TXE flag is set
+
+		while (!(i2c->SR1 & I2C_SR1_TXE)){		// Wait until TXE flag is set or Timeout
+			if (i2c->SR1 & I2C_SR1_AF){
+				i2c->SR1 = ~I2C_SR1_AF;	// skasowanie flagi AF
+				return false;	// blad ACK Failure?
+			}
+			if((getTickMs() - tickstart ) > i2cTimeout){
+				return false;
+			}
+		}
+		i2c->CR1 |= I2C_CR1_STOP;
+
+
+		i2c->DR = (*pData++);  // Write data to DR
+		Size--;
+
+		if((i2c->SR1 & I2C_SR1_BTF) && (Size != 0U)){
+
+			i2c->DR = (*pData++);// Write data to DR
+			Size--;
+		}
+
+		// Wait until BTF flag is set
+		while (!(i2c->SR1 & I2C_SR1_BTF)){		// Wait until TXE flag is set or Timeout
+			if (i2c->SR1 & I2C_SR1_AF){
+				i2c->SR1 = ~I2C_SR1_AF;	// skasowanie flagi AF
+				i2c->CR1 |= I2C_CR1_STOP;// Generate Stop
+				return false;	// blad ACK Failure?
+			}
+			if((getTickMs() - tickstart ) > i2cTimeout){
+				return false;
+			}
+		}
+
+		i2c->CR1 |= I2C_CR1_STOP;// Generate Stop
+
+
+	}
+	return true;
+}
+
+
+ *
+ *
+ * */
