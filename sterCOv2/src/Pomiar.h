@@ -35,8 +35,9 @@ public:
 		TEMP_CO = 2,
 		TEMP_CWU = 3,
 		TERMIK = 4,
-		UNUSED = 5,
-		count = 6	// ilosc wejsc = 6
+		UNUSED = 7,
+		TEMP_uP = 6,
+		count = 7,	// ilosc wejsc = 6
 	} Analogi;
 
 

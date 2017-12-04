@@ -315,58 +315,44 @@ void Hardware::gpioInit(){
 
 //I2C_TypeDef * i2c = I2C1;
 
+//	IN0	PC0	reg.pok.		ADC_1_10
+//	IN1	PC3	czujnikPodaj.	ADC_1_13
+//	IN2	PC1	czujnikCWU		ADC_1_11
+//	IN3	PC2	CzujnikCo		ADC_1_12
+//	IN4	PA4	termik			ADC_1_4
+//	IN5	PA1	NC				ADC_1_1
+//	in6	Temp_uP				ADC_1_IN18
+
+Gpio analog0 = Gpio(GPIOC, 0);
+Gpio analog1 = Gpio(GPIOC, 3);
+Gpio analog2 = Gpio(GPIOC, 1);
+Gpio analog3 = Gpio(GPIOC, 2);
+Gpio analog4 = Gpio(GPIOA, 4);
+Gpio analog5 = Gpio(GPIOA, 1);
+
+
 void Hardware::adcInit(){
 
 	const uint32_t dataLength = Pomiar::Analogi::count;
 	uint32_t dataPtr = (uint32_t)Pomiar::getDataTablePtr();
 
-
+	// ---------- RCC ---------------
 
 	// wlaczenie zegara dla ADC
 	RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
 	// wlaczenie zegara dla DMA2
 	RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
 
+	// ----------GPIO ---------------
 
-	/* Set ADC parameters */
-	/* Set the ADC clock prescaler */
-	ADC->CCR |=  ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;
+	analog0.setup(Gpio::GpioMode::ANALOG, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::NoPull, Gpio::GpioSpeed::HighSpeed);
+	analog1.setup(Gpio::GpioMode::ANALOG, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::NoPull, Gpio::GpioSpeed::HighSpeed);
+	analog2.setup(Gpio::GpioMode::ANALOG, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::NoPull, Gpio::GpioSpeed::HighSpeed);
+	analog3.setup(Gpio::GpioMode::ANALOG, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::NoPull, Gpio::GpioSpeed::HighSpeed);
+	analog4.setup(Gpio::GpioMode::ANALOG, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::NoPull, Gpio::GpioSpeed::HighSpeed);
+	analog5.setup(Gpio::GpioMode::ANALOG, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::NoPull, Gpio::GpioSpeed::HighSpeed);
 
-	/* Set ADC scan mode */
-	ADC1->CR1 |= ADC_CR1_SCAN
-			//			  | ADC_CR1_RES_0			// RES = 12bit 15ADCCLK,
-			;
-
-	/* Set ADC resolution */
-	/* Set ADC data alignment */
-
-	/* Enable or disable ADC continuous conversion mode */
-	ADC1->CR2 |=
-			//			  ADC_CR2_ALIGN |
-			ADC_CR2_CONT ;
-
-	// ilosc wejsc
-	ADC1->SQR1 |= (dataLength - 1) << 20U;
-
-	/* Enable or disable ADC DMA continuous request */
-	ADC1->CR2 |= ADC_CR2_DDS
-			|  ADC_CR2_ADON		// ADC wlaczone
-			;
-
-	/* Delay for ADC stabilization time */
-	/* Compute number of CPU cycles to wait for */
-	__IO uint32_t counter = (3U * (SystemCoreClock / 1000000U));
-	while(counter != 0U)
-	{
-		counter--;
-	}
-
-
-	ADC1->SR &= ~ADC_SR_EOC;
-
-
-	ADC1->CR2 |= ADC_CR2_DMA;
-
+	// ----------DMA ---------------
 	/* Disable the peripheral */
 
 	DMA2_Stream0->CR  &=  ~((uint32_t)0x00000001);
@@ -394,6 +380,89 @@ void Hardware::adcInit(){
 	/* Enable the Peripheral */
 	DMA2_Stream0->CR |=  DMA_SxCR_EN;	// poszly konie
 
+	//  -------------------------------------
+
+
+
+	//  ---------------- ADC ------------------
+
+	/* Set ADC parameters */
+	/* Set the ADC clock prescaler */
+	ADC->CCR |=
+			ADC_CCR_TSVREFE |							// Temperature sensor enabled
+			ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;		// prescaler PCLK2 /8
+
+	/* Set ADC scan mode */
+	ADC1->CR1 |= ADC_CR1_SCAN
+			//			  | ADC_CR1_RES_0			// RES = 12bit 15ADCCLK,
+			//			| ADC_CR1_EOCIE			// Interrupt enable on end of conversion
+			;
+
+
+	// Sample time register
+	uint32_t smp = ADC_SMPR1_SMP10_0 |ADC_SMPR1_SMP10_1; // 56 cycles /sampling time na wszystkich kanalach
+	uint32_t val = 0;
+	for (int i = 0 ; i < 9; i++){
+		val |= smp << (3 * i);
+	}
+	ADC1->SMPR1 = val;
+
+	val |= smp << (3 * 9);
+	ADC1->SMPR2 = val;		// 56 cycles /sampling time na wszystkich kanalach
+
+	// ilosc wejsc
+	ADC1->SQR1 |= (dataLength) << 20U;		// 7 - ilosc sekwencji
+
+	//	IN0	PC0	reg.pok.		ADC_1_10
+	//	IN1	PC3	czujnikPodaj.	ADC_1_13
+	//	IN2	PC1	czujnikCWU		ADC_1_11
+	//	IN3	PC2	CzujnikCo		ADC_1_12
+	//	IN4	PA4	termik			ADC_1_4
+	//	IN5	PA1	NC				ADC_1_1
+	//	in6	Temp_uP				ADC_1_IN18
+
+	ADC1->SQR3 =
+			(10 << (0*5)) |
+			(13 << (1*5)) |
+			(11 << (2*5)) |
+			(12 << (3*5)) |
+			(4 << (4*5)) |
+			(1 << (5*5))
+			;
+	ADC1->SQR2 =
+			(18 << (0*5))
+			;
+
+	/* Set ADC resolution */
+	/* Set ADC data alignment */
+
+	/* Enable or disable ADC continuous conversion mode */
+	ADC1->CR2 |=
+			//			  ADC_CR2_ALIGN |
+//			ADC_CR2_DMA |	// lecimy DMA
+			ADC_CR2_DDS |	// wznawiamy DMA po ostatniej konwersji
+			ADC_CR2_CONT ;
+
+
+	/* Enable or disable ADC DMA continuous request */
+	ADC1->CR2 |= ADC_CR2_DDS
+			|  ADC_CR2_ADON		// ADC wlaczone
+			;
+
+
+	/* Delay for ADC stabilization time */
+	/* Compute number of CPU cycles to wait for */
+	__IO uint32_t counter = (3U * (SystemCoreClock / 1000000U));
+	while(counter != 0U)
+	{
+		counter--;
+	}
+
+
+	ADC1->SR &= ~ADC_SR_EOC;
+
+
+	ADC1->CR2 |= ADC_CR2_DMA;
 
 
 }
@@ -657,6 +726,11 @@ bool Hardware::i2cMasterTransmit(uint16_t slaveAdres, uint8_t * buffer, uint16_t
 bool Hardware::i2cMasterTransmit(uint16_t slaveAdres, uint8_t * buffer, uint16_t amount, uint32_t timeout)
 {
 	//return (HAL_StatusTypeDef::HAL_OK == HAL_I2C_Master_Transmit(i2c, slaveAdres << 1, buffer, amount, timeout));
+}
+
+void DMA2_Stream0_IRQHandler(void){
+	static volatile uint32_t dmairq = 1;
+	dmairq++;
 }
 
 void DMA1_Stream0_IRQHandler(void){
