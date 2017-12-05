@@ -439,7 +439,7 @@ void Hardware::adcInit(){
 	/* Enable or disable ADC continuous conversion mode */
 	ADC1->CR2 |=
 			//			  ADC_CR2_ALIGN |
-//			ADC_CR2_DMA |	// lecimy DMA
+			//			ADC_CR2_DMA |	// lecimy DMA
 			ADC_CR2_DDS |	// wznawiamy DMA po ostatniej konwersji
 			ADC_CR2_CONT ;
 
@@ -522,10 +522,10 @@ void Hardware::delayMs(uint32_t milis){
 //Fifo i2cFifo = Fifo(i2cBuffer, 100);
 constexpr uint8_t I2C_BLOCK_START = 0xfe;
 
-uint8_t i2cFrameBuffer[30];
-Fifo i2cFrame = Fifo(i2cFrameBuffer, 30);
+uint8_t i2cFrameBuffer[50];
+Fifo i2cFrame = Fifo(i2cFrameBuffer, 50);
 
-uint8_t i2cDataBuffer[100];
+uint8_t i2cDataBuffer[200];
 Fifo i2cData = Fifo(i2cDataBuffer, 200);
 
 Hardware::I2Cdefs I2CdefsStr;
@@ -559,7 +559,7 @@ PB7     ------> I2C1_SDA
 		gpioSCL.setAlternateFunc(0x04); //AF04 - );
 		gpioSDA.setAlternateFunc(0x04); //AF04 - );
 		gpioLcdReset.setup(Gpio::GpioMode::OUTPUT, Gpio::GpioOType::PushPull, Gpio::GpioPuPd::NoPull, Gpio::GpioSpeed::MaximumSpeed);
-		gpioLcdReset.pinSetUp();
+		gpioLcdReset.pinSetDown();
 
 	}
 
@@ -623,27 +623,198 @@ PB7     ------> I2C1_SDA
 void Hardware::i2cEvent(){
 	uint32_t sr1 = i2c->instance->SR1;
 	if (sr1 & I2C_SR1_SB){
+		i2c->instance->CR1 |= I2C_CR1_ACK;		// ma byc ack
 		i2c->instance->DR = Hardware::i2c->slaveAdr << 1;
 		i2c->state = I2CSTATE::ADR;
 	}else if (sr1 & I2C_SR1_ADDR){
 		uint32_t sr2 = i2c->instance->SR2;
 		(void)(sr2 == sr2);		//		UNUSED(sr2);
-		i2c->state = I2CSTATE::DATA;
-	}else if (sr1 & (I2C_SR1_TXE | I2C_SR1_BTF)){
+		uint32_t cnt = i2cFrame.get_count();
+		if (cnt == 0){				// nic do wyslania???
+			i2c->instance->CR1 |= I2C_CR1_STOP;
+		}else{
+			i2c->instance->CR1 |= I2C_CR1_ACK;		// ma byc ack
+			i2c->state = I2CSTATE::DATA;
+		}
+	}else if (sr1 & I2C_SR1_BTF){
+		i2c->instance->CR1 |= I2C_CR1_STOP;
+		i2c->state = I2CSTATE::STOP;
+		i2c->timeStamp = QuickTask::getCounter();
+	}else if (sr1 & I2C_SR1_TXE){
 		if (i2cFrame.isNotEmpty()){
+			i2c->instance->CR1 |= I2C_CR1_ACK;		// ma byc ack
 			i2c->instance->DR = i2cFrame.get();
 			i2c->state = I2CSTATE::DATA;
 		}else{
 			i2c->instance->CR1 |= I2C_CR1_STOP;
-			//i2c->state = I2CSTATE::STOP;
-			i2c->state = I2CSTATE::IDLE;
+			i2c->state = I2CSTATE::STOP;
+//			i2c->state = I2CSTATE::IDLE;
 			i2c->timeStamp = QuickTask::getCounter();
 		}
 	}else{
 		i2c->state = I2CSTATE::IDLE;
+		i2c->timeStamp = QuickTask::getCounter();
 	}
-
 }
+
+//void Hardware::i2cEvent(){
+//	uint32_t sr2   = i2c->instance->SR2;
+//	uint32_t sr1   = i2c->instance->SR1;
+//	uint32_t cr2    = i2c->instance->CR2;
+//
+//	/* SB Set ----------------------------------------------------------------*/
+//	if((sr1 & I2C_SR1_SB) && (cr2 & I2C_CR2_ITEVTEN)){
+//		/* Send slave 7 Bits address */
+//		i2c->state = I2CSTATE::ADR;
+//			i2c->instance->DR = Hardware::i2c->slaveAdr << 1;
+//	}
+//	/* ADDR Set --------------------------------------------------------------*/
+//	else if((sr1 & I2C_SR1_ADDR) && (cr2 & I2C_CR2_ITEVTEN)){
+//		I2C_Master_ADDR(hi2c);
+//
+//		 if(hi2c->State == HAL_I2C_STATE_BUSY_RX)
+//		  {
+//		    {
+//		      if(hi2c->XferCount == 0U){
+//		        /* Clear ADDR flag */
+//		        __HAL_I2C_CLEAR_ADDRFLAG(hi2c);
+//
+//		        /* Generate Stop */
+//		        hi2c->Instance->CR1 |= I2C_CR1_STOP;
+//		      }
+//		      else if(hi2c->XferCount == 1U)
+//		      {
+//		        if(CurrentXferOptions == I2C_NO_OPTION_FRAME)
+//		        {
+//		          /* Disable Acknowledge */
+//		            hi2c->Instance->CR1 &= ~I2C_CR1_ACK;
+//
+//		          {
+//		            /* Clear ADDR flag */
+//		            __HAL_I2C_CLEAR_ADDRFLAG(hi2c);
+//
+//		            /* Generate Stop */
+//		            hi2c->Instance->CR1 |= I2C_CR1_STOP;
+//		          }
+//		        }
+//		        /* Prepare next transfer or stop current transfer */
+//		        else if((CurrentXferOptions != I2C_FIRST_AND_LAST_FRAME) && (CurrentXferOptions != I2C_LAST_FRAME) \
+//		          && (Prev_State != I2C_STATE_MASTER_BUSY_RX))
+//		        {
+//		          if(hi2c->XferOptions != I2C_NEXT_FRAME)
+//		          {
+//		            /* Disable Acknowledge */
+//		            hi2c->Instance->CR1 &= ~I2C_CR1_ACK;
+//		          }
+//		          else
+//		          {
+//		            /* Enable Acknowledge */
+//		            hi2c->Instance->CR1 |= I2C_CR1_ACK;
+//		          }
+//
+//		          /* Clear ADDR flag */
+//		          __HAL_I2C_CLEAR_ADDRFLAG(hi2c);
+//		        }
+//		        else
+//		        {
+//		          /* Disable Acknowledge */
+//		          hi2c->Instance->CR1 &= ~I2C_CR1_ACK;
+//
+//		          /* Clear ADDR flag */
+//		          __HAL_I2C_CLEAR_ADDRFLAG(hi2c);
+//
+//		          /* Generate Stop */
+//		          hi2c->Instance->CR1 |= I2C_CR1_STOP;
+//		        }
+//		      }
+//		      else if(hi2c->XferCount == 2U)
+//		      {
+//		        if(hi2c->XferOptions != I2C_NEXT_FRAME)
+//		        {
+//		          /* Disable Acknowledge */
+//		          hi2c->Instance->CR1 &= ~I2C_CR1_ACK;
+//
+//		          /* Enable Pos */
+//		          hi2c->Instance->CR1 |= I2C_CR1_POS;
+//		        }
+//		        else
+//		        {
+//		          /* Enable Acknowledge */
+//		          hi2c->Instance->CR1 |= I2C_CR1_ACK;
+//		        }
+//
+//		        if((hi2c->Instance->CR2 & I2C_CR2_DMAEN) == I2C_CR2_DMAEN)
+//		        {
+//		          /* Enable Last DMA bit */
+//		          hi2c->Instance->CR2 |= I2C_CR2_LAST;
+//		        }
+//
+//		        /* Clear ADDR flag */
+//		        __HAL_I2C_CLEAR_ADDRFLAG(hi2c);
+//		      }
+//		      else
+//		      {
+//		        /* Enable Acknowledge */
+//		        hi2c->Instance->CR1 |= I2C_CR1_ACK;
+//
+//		        if((hi2c->Instance->CR2 & I2C_CR2_DMAEN) == I2C_CR2_DMAEN)
+//		        {
+//		          /* Enable Last DMA bit */
+//		          hi2c->Instance->CR2 |= I2C_CR2_LAST;
+//		        }
+//
+//		        /* Clear ADDR flag */
+//		        __HAL_I2C_CLEAR_ADDRFLAG(hi2c);
+//		      }
+//
+//		      /* Reset Event counter  */
+//		      hi2c->EventCount = 0U;
+//		    }
+//		  }
+//		  else
+//		  {
+//		    /* Clear ADDR flag */
+//		    __HAL_I2C_CLEAR_ADDRFLAG(hi2c);
+//		  }
+//
+//
+//
+//
+//	}
+//
+//	/* I2C in mode Transmitter -----------------------------------------------*/
+//	if((sr2itflags & I2C_FLAG_TRA) != RESET)
+//	{
+//		/* TXE set and BTF reset -----------------------------------------------*/
+//		if(((sr1itflags & I2C_FLAG_TXE) != RESET) && ((itsources & I2C_IT_BUF) != RESET) && ((sr1itflags & I2C_FLAG_BTF) == RESET))
+//		{
+//			I2C_MasterTransmit_TXE(hi2c);
+//		}
+//		/* BTF set -------------------------------------------------------------*/
+//		else if(((sr1itflags & I2C_FLAG_BTF) != RESET) && ((itsources & I2C_IT_EVT) != RESET))
+//		{
+//			I2C_MasterTransmit_BTF(hi2c);
+//		}
+//	}
+//	/* I2C in mode Receiver --------------------------------------------------*/
+//	else
+//	{
+//		/* RXNE set and BTF reset -----------------------------------------------*/
+//		if(((sr1itflags & I2C_FLAG_RXNE) != RESET) && ((itsources & I2C_IT_BUF) != RESET) && ((sr1itflags & I2C_FLAG_BTF) == RESET))
+//		{
+//			I2C_MasterReceive_RXNE(hi2c);
+//		}
+//		/* BTF set -------------------------------------------------------------*/
+//		else if(((sr1itflags & I2C_FLAG_BTF) != RESET) && ((itsources & I2C_IT_EVT) != RESET))
+//		{
+//			I2C_MasterReceive_BTF(hi2c);
+//		}
+//	}
+//
+//
+//}
+
+
 
 void Hardware::i2cError(){
 	static uint32_t err = 0;
@@ -676,16 +847,16 @@ bool i2cGetBusyFlag(){
 
 void Hardware::i2cTimerJob(){
 
-	if (QuickTask::getTimeIntervalMilis(i2c->timeStamp) < 4) return;  // 4 ms odstepu do poprzedniej transmisji/ komendy
+	if (QuickTask::getTimeIntervalMilis(i2c->timeStamp) < 5) return;  // 4 ms odstepu do poprzedniej transmisji/ komendy
 
-//	if (QuickTask::getTimeIntervalMilis(timeStamp) > 1000){  // jesli powyzej sekundy to timeStamp
-//		if (i2c->instance->SR2 & I2C_SR2_BUSY){ // jesli tak dlugo busy, to reset I2C
-//			i2c->instance->CR1 |= I2C_CR1_SWRST;
-//			i2c->instance->CR1 &= ~I2C_CR1_SWRST;
-//			i2cInit();
-//		}
-//		i2c->state = I2CSTATE::IDLE;
-//	}
+	//	if (QuickTask::getTimeIntervalMilis(timeStamp) > 1000){  // jesli powyzej sekundy to timeStamp
+	//		if (i2c->instance->SR2 & I2C_SR2_BUSY){ // jesli tak dlugo busy, to reset I2C
+	//			i2c->instance->CR1 |= I2C_CR1_SWRST;
+	//			i2c->instance->CR1 &= ~I2C_CR1_SWRST;
+	//			i2cInit();
+	//		}
+	//		i2c->state = I2CSTATE::IDLE;
+	//	}
 
 	if (i2cGetBusyFlag()) return;
 	if (i2c->state != I2CSTATE::IDLE) return;
