@@ -97,9 +97,10 @@ void main()
 	hmi->lcd->print("123456");
 	Hardware::delayMs(100);
 
-
+	hmi->lcd->gotoXY(1,0);
+	Hardware::delayMs(100);
 	//---------------------->1234567890123456<
-	hmi->lcd->printXY(0,0,	"Sterow. pieca CO");
+	hmi->lcd->print("Sterow. pieca CO");
 	Hardware::delayMs(1000);
 	hmi->lcd->printXY(1,0,	"   wersja 1.0   ");
 

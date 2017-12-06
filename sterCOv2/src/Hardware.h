@@ -21,25 +21,25 @@ public:
 		OK, Incident, Failure,
 	}ErrorCode;
 
-	typedef enum{
-		IDLE, START, ADR, DATA, STOP
-	}I2CSTATE;
-
-	typedef struct{
-		volatile I2C_TypeDef * instance;
-		Fifo * frameBuffer;
-		Fifo * dataBuffer;
-		volatile uint32_t timeStamp;
-		uint32_t i2cFreqkHz;
-		volatile uint16_t slaveAdr = 0;
-		volatile I2CSTATE state;
-	}I2Cdefs;
-
-	static I2Cdefs * i2c;
+//	typedef enum{
+//		IDLE, START, ADR, DATA, STOP
+//	}I2CSTATE;
+//
+//	typedef struct{
+//		volatile I2C_TypeDef * instance;
+//		Fifo * frameBuffer;
+//		Fifo * dataBuffer;
+//		volatile uint32_t timeStamp;
+//		uint32_t i2cFreqkHz;
+//		volatile uint16_t slaveAdr = 0;
+//		volatile I2CSTATE state;
+//	}I2Cdefs;
+//
+//	static I2Cdefs * i2c;
 
 	static constexpr uint32_t SYSTICK_FREQUENCY_HZ = 1000;
 
-	static constexpr uint32_t I2C_TIMEOUT_MS = 1000;
+//	static constexpr uint32_t I2C_TIMEOUT_MS = 1000;
 
 
 
