@@ -61,7 +61,7 @@ public:
 
 
 	void monitor(){
-		Hardware::i2cTimerJob();
+		lcd->poll();
 		menu->poll();
 	}
 

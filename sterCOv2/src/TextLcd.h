@@ -33,6 +33,7 @@ public:
 		driver = lcdDriver;
 	}
 
+	void poll(){ driver->poll(); }
 
 	bool gotoXY(uint16_t rowNr, uint16_t columnNr){
 		return driver->gotoXY(rowNr,columnNr);

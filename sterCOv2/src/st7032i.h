@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 #include "Hardware.h"
+#include "STM32F4i2c.h"
 
 #define LCD5V 1		//
 
@@ -76,7 +77,9 @@ private:
 	bool sendData(uint8_t cmd);
 	bool sendCmdOrData(bool isCMD, uint8_t byteValue);
 
-	inline void delayMs(uint32_t milis){ Hardware::delayMs(milis); }
+	inline void delayMs(uint32_t milis){ i2c->dirtyDelayMs(milis); }
+
+	STM32F4_i2c * i2c = nullptr;
 
 public:
 	//	ST7032I(I2C_HandleTypeDef * i2cHandle){ hi2c = i2cHandle; };
@@ -89,7 +92,10 @@ public:
 //	}
 
 
-	void init(void);
+	void init(STM32F4_i2c * i2cPtr);
+
+	void poll(){ i2c->poll(); }
+
 	bool gotoXY(uint8_t Row, uint8_t Col);
 	bool print(char znak);
 	bool print(const char * str);

@@ -8,8 +8,8 @@
 #ifndef HARDWARE_H_
 #define HARDWARE_H_
 
-#include <stm32f4_i2c_lb.h__>
 #include "stm32f4xx.h"
+#include "STM32F4i2c.h"
 
 #include "Fifo.h"
 
@@ -17,34 +17,15 @@ class Hardware {
 
 public:
 
+	static constexpr uint32_t nvicPriority = 0x03U;
+	static constexpr uint32_t SYSTICK_FREQUENCY_HZ = 1000;
+
 	typedef enum{
 		OK, Incident, Failure,
 	}ErrorCode;
 
-//	typedef enum{
-//		IDLE, START, ADR, DATA, STOP
-//	}I2CSTATE;
-//
-//	typedef struct{
-//		volatile I2C_TypeDef * instance;
-//		Fifo * frameBuffer;
-//		Fifo * dataBuffer;
-//		volatile uint32_t timeStamp;
-//		uint32_t i2cFreqkHz;
-//		volatile uint16_t slaveAdr = 0;
-//		volatile I2CSTATE state;
-//	}I2Cdefs;
-//
-//	static I2Cdefs * i2c;
 
-	static constexpr uint32_t SYSTICK_FREQUENCY_HZ = 1000;
-
-//	static constexpr uint32_t I2C_TIMEOUT_MS = 1000;
-
-
-
-	Hardware(){
-	}
+	Hardware(){	}
 
 	static void init();
 
@@ -58,16 +39,16 @@ public:
 	//static inline void I2C_Init(){ i2c_init(i2c, I2C_TIMEOUT_MS, getTickMs); }
 
 //	static bool I2C_Init(I2C_TypeDef *i2cPtr, uint32_t Timeout);
-	inline static bool I2C_MasterTransmit(uint16_t DevAddress, uint8_t *pData, uint16_t Size){
-			return I2C_Result::I2C_OK == i2c_MasterTransmit(DevAddress, pData, Size);
-	}
+//	inline static bool I2C_MasterTransmit(uint16_t DevAddress, uint8_t *pData, uint16_t Size){
+//			return I2C_Result::I2C_OK == i2c_MasterTransmit(DevAddress, pData, Size);
+//	}
 
-	static bool i2cMasterTransmit(uint16_t slaveAdres, uint8_t * buffer, uint16_t amount);
-	static bool i2cMasterTransmit(uint16_t slaveAdres, uint8_t * buffer, uint16_t amount, uint32_t timeout);
-	static void i2cEvent();
-	static void i2cError();
-
-	static void i2cTimerJob();
+//	static bool i2cMasterTransmit(uint16_t slaveAdres, uint8_t * buffer, uint16_t amount);
+//	static bool i2cMasterTransmit(uint16_t slaveAdres, uint8_t * buffer, uint16_t amount, uint32_t timeout);
+//	static void i2cEvent();
+//	static void i2cError();
+//
+//	static void i2cTimerJob();
 
 	static void errorDispatch(ErrorCode errCode){
 		switch(errCode){
@@ -75,6 +56,7 @@ public:
 			while (true){;}// ToDo mruganie dioda
 			break;
 		case Incident:
+		case OK:
 			// Todo zasygnalizowanie
 			break;
 		}
@@ -85,7 +67,7 @@ public:
 private:
 	static void gpioInit();
 	static void adcInit();
-	static void i2cInit();
+//	static void i2cInit();
 
 //	static bool	waitUntilFlagState(__IO uint32_t *regPtr, uint32_t flag, bool unlockState, uint32_t timeoutMs);
 //

@@ -6,26 +6,17 @@
  */
 
 #include "st7032i.h"
+
 //#include "stm32f4xx_hal_i2c.h"
 
 // Functions for ST7032I
 
 
-//I2C_HandleTypeDef i2c;
-
-//bool ST7032I::sendCmdOrData(bool isCMD, uint8_t byteValue){
-//	uint8_t buf[2];
-//	buf[0] = isCMD ? CMD : DATA;
-//	buf[1] = byteValue;
-//	bool ret = Hardware::i2cMasterTransmit(ST7032I_ADDRESS, buf, 2);
-//	delayMs(2);
-//	return ret;
-//}
 bool ST7032I::sendCmdOrData(bool isCMD, uint8_t byteValue){
 	uint8_t buf[2];
 	buf[0] = isCMD ? CMD : DATA;
 	buf[1] = byteValue;
-	bool ret = Hardware::i2cMasterTransmit(ST7032I_ADDRESS, buf, 2);
+	bool ret = i2c->i2cMasterTransmit(ST7032I_ADDRESS, buf, 2);
 	return ret;
 }
 
@@ -39,11 +30,12 @@ bool ST7032I::sendData(uint8_t data){
 
 
 // LCD initialization procedure
-void ST7032I::init(void){
+void ST7032I::init(STM32F4_i2c * i2cPtr){
+	i2c = i2cPtr;
 	//Hardware::i2cInit();
-	Hardware::lcdPinReset(false);
+	i2c->setResetPin(false);
 	delayMs(10);
-	Hardware::lcdPinReset(true);
+	i2c->setResetPin(true);
 	delayMs(10);
 
 	sendCommand(0x38);
@@ -91,7 +83,7 @@ bool ST7032I::print(const char * str){
 		if (znak == '\0') break;
 	}
 	buf[BUFFSIZE-1] = '\0';
-	bool ret = Hardware::i2cMasterTransmit(ST7032I_ADDRESS, buf, (uint16_t)(i));
+	bool ret = i2c->i2cMasterTransmit(ST7032I_ADDRESS, buf, (uint16_t)(i));
 	return ret;
 }
 

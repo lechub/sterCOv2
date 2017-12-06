@@ -25,6 +25,11 @@ public:
 	Gpio gpioPompaCO = Gpio(GPIOA,10);
 	Gpio gpioPompaCWU = Gpio(GPIOA,11);
 
+	Gpio gpioSCL = Gpio(GPIOB,6);
+	Gpio gpioSDA = Gpio(GPIOB,7);
+	Gpio gpioLcdReset = Gpio(GPIOC,7);
+
+
 //	Gpio regulatorPokojowy = Gpio(GPIOC, 0, Gpio::GpioMode::INPUT, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::PullUp, Gpio::GpioSpeed::Speed1);
 //	Gpio termik = Gpio(GPIOA, 4, Gpio::GpioMode::INPUT, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::PullUp, Gpio::GpioSpeed::Speed1);
 

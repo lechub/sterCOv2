@@ -17,7 +17,7 @@
 #define WATCHDOG_ENABLE 1
 #endif
 
-constexpr uint32_t nvicPriority = 0x03U;
+
 
 
 //I2C_TypeDef * Hardware::i2ch = I2C1;
@@ -293,7 +293,7 @@ void Hardware::init(){
 
 	adcInit();
 
-	i2cInit();
+	//i2cInit();
 
 	WDOG_Init();
 
@@ -516,7 +516,7 @@ void Hardware::delayMs(uint32_t milis){
 
 
 
-void Hardware::lcdPinReset(bool newstate){ gpioLcdReset.pinSet(newstate); }
+//void Hardware::lcdPinReset(bool newstate){ gpioLcdReset.pinSet(newstate); }
 
 
 
