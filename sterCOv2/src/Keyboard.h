@@ -145,7 +145,9 @@ public:
 
 	Key getUnbufferedKey(){
 		Key key = getImpulsatorKey();
-		if (key != Key::NONE) return key;
+		if (key != Key::NONE){
+			return key;
+		}
 		return getPressedKey();
 	}
 

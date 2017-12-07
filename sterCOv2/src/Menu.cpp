@@ -19,25 +19,25 @@ void Menu::poll(){
 
 
 
-	//	//		//********** DEBUG ************
-	//	//
-	//	//		Keyboard::Key key = keys.getKey();
-	//			static uint8_t pos = 0;
-	//			pos++;
-	//			if (pos > 5) pos = 0;
-	//
-	//			switch(key){
-	//			case Keyboard::Key::ENTER: lcd->printXY(1,pos," Enter "); break;
-	//			case Keyboard::Key::CANCEL: lcd->printXY(1,pos," Cancel "); break;
-	//			case Keyboard::Key::LEFT: lcd->printXY(1,pos," Left "); break;
-	//			case Keyboard::Key::RIGHT: lcd->printXY(1,pos," Right "); break;
-	//			default: break;
-	//			}
-	//			return;
-	//	//
-	//	//
-	//	//
-	//	//		//*****************************
+		//		//********** DEBUG ************
+		//
+		//		Keyboard::Key key = keys.getKey();
+				static uint8_t pos = 0;
+				pos++;
+				if (pos > 5) pos = 0;
+
+				switch(key){
+				case Keyboard::Key::ENTER: lcd->printXY(1,pos," Enter "); break;
+				case Keyboard::Key::CANCEL: lcd->printXY(1,pos," Cancel "); break;
+				case Keyboard::Key::LEFT: lcd->printXY(1,pos," Left "); break;
+				case Keyboard::Key::RIGHT: lcd->printXY(1,pos," Right "); break;
+				default: break;
+				}
+				return;
+		//
+		//
+		//
+		//		//*****************************
 
 	if (editMode){
 		edit(key);

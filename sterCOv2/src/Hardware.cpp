@@ -514,14 +514,6 @@ void Hardware::delayMs(uint32_t milis){
 
 
 
-
-
-//void Hardware::lcdPinReset(bool newstate){ gpioLcdReset.pinSet(newstate); }
-
-
-
-
-
 void DMA2_Stream0_IRQHandler(void){
 	static volatile uint32_t dmairq = 1;
 	dmairq++;

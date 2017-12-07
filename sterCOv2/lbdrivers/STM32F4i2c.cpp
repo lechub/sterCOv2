@@ -122,44 +122,49 @@ PB7     ------> I2C1_SDA
 	dataStream->flush();
 	frameIrq = frame1;
 
-	state = State::IDLE;
+	setState(State::IDLE);
 
 	return true;
 }
 
 void STM32F4_i2c::irqEvent(){
 	makeStamp();	// i2c cos wlasnie robi (przerwanie)
-	volatile uint32_t sr2 = base->SR2;
+	uint32_t sr2 = base->SR2;
 	uint32_t sr1 = base->SR1;
 	Fifo * frame = frameIrq;
 	if (sr1 & I2C_SR1_SB){
 		base->CR1 |= I2C_CR1_ACK;		// ma byc ack
 		base->DR = slaveAdr << 1;
-		state = State::ADR;
+		setState(State::ADR);
 	}else if (sr1 & I2C_SR1_ADDR){
 		sr2 = base->SR2;
 		(void)(sr2 = -sr2);		//		UNUSED(sr2);
 		if (frame->isEmpty()){				// nic do wyslania???
 			base->CR1 |= I2C_CR1_STOP;
-			state = State::IDLE;
+			setState(State::IDLE);
 		}else{
 			base->CR1 |= I2C_CR1_ACK;		// ma byc ack
-			state = State::DATA;
+			setState(State::DATA);
 		}
-	}else if (sr1 & (I2C_SR1_TXE | I2C_SR1_BTF)){
+	}else if (sr1 & I2C_SR1_BTF){
+			base->CR1 |= I2C_CR1_STOP;
+			setState(State::IDLE);
+	}else if (sr1 & I2C_SR1_TXE){
 		if (frame->isNotEmpty()){
 			base->CR1 |= I2C_CR1_ACK;		// ma byc ack
 			base->DR = frame->get();
-			state = State::DATA;
+			setState(State::DATA);
 		}else{
 			base->CR1 |= I2C_CR1_STOP;
-			state = State::IDLE;
+			setState(State::STOP);
 		}
 	}else{
 		if (!(sr2 & I2C_SR2_BUSY)){
-			state = State::IDLE;
+			setState(State::IDLE);
+			sr2++;
 		}
 	}
+	sr1++;
 }
 
 
@@ -183,7 +188,7 @@ void STM32F4_i2c::irqError(){
 			I2C_SR1_ARLO |
 			I2C_SR1_BERR
 	);
-	state = State::IDLE;
+	setState(State::IDLE);
 	timeStamp = QuickTask::getCounter();
 }
 
@@ -215,7 +220,7 @@ void STM32F4_i2c::cyclicJob(){
 	if (state != State::IDLE){
 		if (QuickTask::getTimeIntervalMilis(timeStamp) > TIMEOUT_MS){  	// jesli Cos robi powyzej sekundy to problem
 			base->CR1 &= ~I2C_CR1_PE;	// wylacz i2c		// base->CR1 |= I2C_CR1_SWRST;
-			state = State::IDLE;
+			setState(State::IDLE);
 		}
 		return;
 	}
@@ -246,7 +251,7 @@ void STM32F4_i2c::cyclicJob(){
 		if (dataStream->isEmpty()) return;
 		frame->put(uint8_t(dataStream->get()));
 	}
-	state = State::START;
+	setState(State::START);
 	base->CR1 |= I2C_CR1_START;
 }
 
@@ -265,10 +270,7 @@ bool STM32F4_i2c::masterTransmit(uint8_t * buffer, uint8_t amount){
 	return true;
 }
 
-//bool STM32F4_i2c::i2cMasterTransmit(uint16_t slaveAdres, uint8_t * buffer, uint16_t amount, uint32_t timeout)
-//{
-//	//return (HAL_StatusTypeDef::HAL_OK == HAL_I2C_Master_Transmit(i2c, slaveAdres << 1, buffer, amount, timeout));
-//}
+
 
 void I2C1_EV_IRQHandler(void){
 	i2cInstance.irqEvent();

@@ -63,8 +63,8 @@ void main()
 	/* Configure the system clock */
 	//SystemClock_Config();
 
-	pins.setup();
 	Hardware::init();
+	pins.setup();
 	i2cInitDefs.base = I2C1;
 	i2cInitDefs.i2cFreqkHz = 100;
 	i2cInitDefs.sda = &pins.gpioSDA;
@@ -81,7 +81,6 @@ void main()
 	hmi = HMI::getInstance();
 	hmi->init(sterCO, &keys, &lcd, &menu);
 
-
 	hmi->lcd->clrScrHome();
 
 	hmi->lcd->lcd_ON();
@@ -95,50 +94,15 @@ void main()
 		while(true){;}
 	}
 
-	hmi->lcd->print("abcd");
-	i2c->dirtyDelayMs(100);
-	hmi->lcd->setCursorMode(CURSOR::BLINK);
-	i2c->dirtyDelayMs(100);
-	hmi->lcd->print(" dcba ");
-	i2c->dirtyDelayMs(100);
-	hmi->lcd->gotoXY(1,0);
-	i2c->dirtyDelayMs(100);
-	hmi->lcd->print("123456");
-	i2c->dirtyDelayMs(100);
 
-	hmi->lcd->gotoXY(1,0);
-	i2c->dirtyDelayMs(100);
 	//---------------------->1234567890123456<
-	hmi->lcd->print("Sterow. pieca CO");
-	i2c->dirtyDelayMs(1000);
+	hmi->lcd->printXY(0,0,  "Sterow. pieca CO");	i2c->dirtyDelayMs(500);
 	hmi->lcd->printXY(1,0,	"   wersja 1.0   ");
-
-	i2c->dirtyDelayMs(1000);
-
+	i2c->dirtyDelayMs(2000);
 	//------------------->1234567890123456<
-	hmi->lcd->printXY(0,0,"@ Leszek Blacha ");
-	i2c->dirtyDelayMs(1000);
+	hmi->lcd->printXY(0,0,"@ Leszek Blacha ");	i2c->dirtyDelayMs(500);
 	hmi->lcd->printXY(1,0,"pazdziernik 2017");
-
-	i2c->dirtyDelayMs(1000);
-
-	/* USER CODE END 2 */
-
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
-
-	//uint8_t pos = 0;
-
-	/*##-3- Start the conversion process and enable interrupt ##################*/
-	/* Note: Considering IT occurring after each number of ADC conversions      */
-	/*       (IT by DMA end of transfer), select sampling time and ADC clock    */
-	/*       with sufficient duration to not create an overhead situation in    */
-	/*        IRQHandler. */
-//	if(HAL_ADC_Start_DMA(&hadc1, (uint32_t*)Pomiar::getDataTablePtr(), Pomiar::getIloscWejsc()) != HAL_OK)
-//	{
-//		/* Start Conversation Error */
-//		Error_Handler();
-//	}
+	i2c->dirtyDelayMs(2000);
 
 	hmi->menu->goToEkran(Menu::EKRAN::e_AUTOMAT);
 	do{

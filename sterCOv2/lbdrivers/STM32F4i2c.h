@@ -48,6 +48,14 @@ private:
 	volatile uint16_t slaveAdr = 0;
 	volatile State state = State::IDLE;
 
+	void setState(State newstate){
+		if (newstate == State::IDLE){
+			state = State::IDLE;
+		}else{
+			state = newstate;
+		}
+	}
+
 	bool init();
 	void cyclicJob();
 	bool isBusy();
@@ -57,14 +65,6 @@ public:
 	static STM32F4_i2c * getInstance();
 
 	bool init(InitDefs * initDefsPtr);
-
-//	bool init(I2C_TypeDef * i2cBasePtr, Gpio * sdaPtr, Gpio * sclPtr){
-//		base = i2cBasePtr;
-//		sda = sdaPtr;
-//		scl = sclPtr;
-//		init();
-//		return true;
-//	}
 
 	void setSlaveAdres(uint16_t slaveAdres) {slaveAdr = slaveAdres; }
 
