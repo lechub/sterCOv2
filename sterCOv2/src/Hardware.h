@@ -62,7 +62,7 @@ public:
 		}
 	}
 
-	static void lcdPinReset(bool newstate);
+	//static void lcdPinReset(bool newstate);
 
 private:
 	static void gpioInit();

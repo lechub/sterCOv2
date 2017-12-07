@@ -16,7 +16,7 @@ bool ST7032I::sendCmdOrData(bool isCMD, uint8_t byteValue){
 	uint8_t buf[2];
 	buf[0] = isCMD ? CMD : DATA;
 	buf[1] = byteValue;
-	bool ret = i2c->i2cMasterTransmit(ST7032I_ADDRESS, buf, 2);
+	bool ret = i2c->masterTransmit(buf, 2);
 	return ret;
 }
 
@@ -32,6 +32,7 @@ bool ST7032I::sendData(uint8_t data){
 // LCD initialization procedure
 void ST7032I::init(STM32F4_i2c * i2cPtr){
 	i2c = i2cPtr;
+	i2c->setSlaveAdres(ST7032I_ADDRESS);
 	//Hardware::i2cInit();
 	i2c->setResetPin(false);
 	delayMs(10);
@@ -83,7 +84,7 @@ bool ST7032I::print(const char * str){
 		if (znak == '\0') break;
 	}
 	buf[BUFFSIZE-1] = '\0';
-	bool ret = i2c->i2cMasterTransmit(ST7032I_ADDRESS, buf, (uint16_t)(i));
+	bool ret = i2c->masterTransmit(buf, (uint16_t)(i));
 	return ret;
 }
 

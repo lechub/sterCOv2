@@ -28,6 +28,7 @@ public:
 	Gpio gpioSCL = Gpio(GPIOB,6);
 	Gpio gpioSDA = Gpio(GPIOB,7);
 	Gpio gpioLcdReset = Gpio(GPIOC,7);
+	Gpio gpioLcdBackLight = Gpio(GPIOB,2);
 
 
 //	Gpio regulatorPokojowy = Gpio(GPIOC, 0, Gpio::GpioMode::INPUT, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::PullUp, Gpio::GpioSpeed::Speed1);
@@ -48,6 +49,7 @@ public:
 	Gpio gpioImpPush =  Gpio(GPIOC,9);
 	Gpio gpioImpLeft =  Gpio(GPIOB,8);
 	Gpio gpioImpRight =  Gpio(GPIOB,9);
+
 //	Gpio btnMenu = Gpio(GPIOA,1);
 //	Gpio btnOK = Gpio(GPIOA,1);
 //	Gpio btnUp = Gpio(GPIOA,1);

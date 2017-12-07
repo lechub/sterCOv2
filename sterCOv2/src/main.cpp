@@ -70,6 +70,7 @@ void main()
 	i2cInitDefs.sda = &pins.gpioSDA;
 	i2cInitDefs.scl = &pins.gpioSCL;
 	i2cInitDefs.resetPin = &pins.gpioLcdReset;
+	i2cInitDefs.backLight = &pins.gpioLcdBackLight;
 	STM32F4_i2c * i2c = STM32F4_i2c::getInstance();
 	i2c->init(&i2cInitDefs);
 
@@ -95,31 +96,31 @@ void main()
 	}
 
 	hmi->lcd->print("abcd");
-	Hardware::delayMs(100);
+	i2c->dirtyDelayMs(100);
 	hmi->lcd->setCursorMode(CURSOR::BLINK);
-	Hardware::delayMs(100);
+	i2c->dirtyDelayMs(100);
 	hmi->lcd->print(" dcba ");
-	Hardware::delayMs(100);
+	i2c->dirtyDelayMs(100);
 	hmi->lcd->gotoXY(1,0);
-	Hardware::delayMs(100);
+	i2c->dirtyDelayMs(100);
 	hmi->lcd->print("123456");
-	Hardware::delayMs(100);
+	i2c->dirtyDelayMs(100);
 
 	hmi->lcd->gotoXY(1,0);
-	Hardware::delayMs(100);
+	i2c->dirtyDelayMs(100);
 	//---------------------->1234567890123456<
 	hmi->lcd->print("Sterow. pieca CO");
-	Hardware::delayMs(1000);
+	i2c->dirtyDelayMs(1000);
 	hmi->lcd->printXY(1,0,	"   wersja 1.0   ");
 
-	Hardware::delayMs(1000);
+	i2c->dirtyDelayMs(1000);
 
 	//------------------->1234567890123456<
 	hmi->lcd->printXY(0,0,"@ Leszek Blacha ");
-	Hardware::delayMs(1000);
+	i2c->dirtyDelayMs(1000);
 	hmi->lcd->printXY(1,0,"pazdziernik 2017");
 
-	Hardware::delayMs(1000);
+	i2c->dirtyDelayMs(1000);
 
 	/* USER CODE END 2 */
 

@@ -14,12 +14,14 @@
 
 class STM32F4_i2c {
 public:
-	static constexpr uint32_t I2C_TIMEOUT_MS = 1000;
+	static constexpr uint32_t TIMEOUT_MS = 1000;
+	static constexpr uint32_t COMMAND_MIN_DELAY_MS = 8;
 	typedef struct{
 		I2C_TypeDef * base = nullptr;
 		Gpio * sda;
 		Gpio * scl;
 		Gpio * resetPin;
+		Gpio * backLight;
 		uint32_t i2cFreqkHz = 100;
 	}InitDefs;
 
@@ -35,11 +37,12 @@ private:
 	Gpio * sdaPin;
 	Gpio * sclPin;
 	Gpio * rstPin;
+	Gpio * bckLightPin;
 	uint32_t i2cFreqkHz = 100;
-	volatile Fifo * frameIrq = nullptr;
+	Fifo * frameIrq = nullptr;
 	Fifo * frame1 = nullptr;
-	Fifo * frame2 = nullptr;
-	//volatile uint8_t activeFrame = 0;
+	//Fifo * frame2 = nullptr;
+	bool frameLoading = false;
 	Fifo * dataStream = nullptr;
 	volatile uint32_t timeStamp = 0;
 	volatile uint16_t slaveAdr = 0;
@@ -48,6 +51,7 @@ private:
 	bool init();
 	void cyclicJob();
 	bool isBusy();
+	void makeStamp();
 
 public:
 	static STM32F4_i2c * getInstance();
@@ -62,9 +66,16 @@ public:
 //		return true;
 //	}
 
-	bool i2cMasterTransmit(uint16_t slaveAdres, uint8_t * buffer, uint16_t amount);
+	void setSlaveAdres(uint16_t slaveAdres) {slaveAdr = slaveAdres; }
+
+	bool masterTransmit(uint8_t * buffer, uint8_t amount);
+	bool masterTransmit(uint16_t slaveAdres, uint8_t * buffer, uint8_t amount){
+		setSlaveAdres(slaveAdres);
+		return masterTransmit(buffer, amount);
+	}
 
 	void setResetPin(bool newstate){ rstPin->pinSet(newstate); }
+	void setBackLight(bool newstate){ bckLightPin->pinSet(newstate); }
 
 	void dirtyDelayMs(uint32_t miliseconds);
 
