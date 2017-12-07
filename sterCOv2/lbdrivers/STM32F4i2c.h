@@ -24,6 +24,8 @@ public:
 	}InitDefs;
 
 private:
+	static constexpr uint8_t I2C_BLOCK_START = 0xfe;
+
 	typedef enum{
 		IDLE, START, ADR, DATA, STOP
 	}State;
@@ -34,8 +36,11 @@ private:
 	Gpio * sclPin;
 	Gpio * rstPin;
 	uint32_t i2cFreqkHz = 100;
-	Fifo * frameBuffer = nullptr;
-	Fifo * dataBuffer = nullptr;
+	volatile Fifo * frameIrq = nullptr;
+	Fifo * frame1 = nullptr;
+	Fifo * frame2 = nullptr;
+	//volatile uint8_t activeFrame = 0;
+	Fifo * dataStream = nullptr;
 	volatile uint32_t timeStamp = 0;
 	volatile uint16_t slaveAdr = 0;
 	volatile State state = State::IDLE;

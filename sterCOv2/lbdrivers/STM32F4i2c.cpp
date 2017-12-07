@@ -27,34 +27,36 @@ void STM32F4_i2c::dirtyDelayMs(uint32_t miliseconds){
 }
 // ****************************************************************
 
-constexpr uint8_t I2C_BLOCK_START = 0xfe;
 
-uint8_t i2cFrameBuffer[50];
-Fifo i2cFrame = Fifo(i2cFrameBuffer, 50);
+uint8_t frameBuffer1[50];
+Fifo frame1Fifo = Fifo(frameBuffer1, 50);
 
-uint8_t i2cDataBuffer[200];
-Fifo i2cData = Fifo(i2cDataBuffer, 200);
+uint8_t frameBuffer2[50];
+Fifo frame2Fifo = Fifo(frameBuffer1, 50);
+
+uint8_t dataFifo[200];
+Fifo dataStreamFifo = Fifo(dataFifo, 200);
 
 // ****************************************************************
 bool STM32F4_i2c::init(InitDefs * initDefsPtr){
-		if (initDefsPtr->base == nullptr) base = I2C1;
-		if (initDefsPtr->sda == nullptr) Hardware::errorDispatch(Hardware::ErrorCode::Failure);
-		if (initDefsPtr->scl == nullptr) Hardware::errorDispatch(Hardware::ErrorCode::Failure);
-		sdaPin = initDefsPtr->sda;
-		sclPin = initDefsPtr->scl;
-		rstPin = initDefsPtr->resetPin;
-		i2cFreqkHz = (initDefsPtr->i2cFreqkHz == 0) ? 100 :  i2cFreqkHz = initDefsPtr->i2cFreqkHz;
-		return init();
-	}
+	if (initDefsPtr->base == nullptr) base = I2C1;
+	if (initDefsPtr->sda == nullptr) Hardware::errorDispatch(Hardware::ErrorCode::Failure);
+	if (initDefsPtr->scl == nullptr) Hardware::errorDispatch(Hardware::ErrorCode::Failure);
+	sdaPin = initDefsPtr->sda;
+	sclPin = initDefsPtr->scl;
+	rstPin = initDefsPtr->resetPin;
+	i2cFreqkHz = (initDefsPtr->i2cFreqkHz == 0) ? 100 :  i2cFreqkHz = initDefsPtr->i2cFreqkHz;
+	return init();
+}
 
 bool STM32F4_i2c::init(){
 	// RCC
 	do {
-			SET_BIT(RCC->APB1ENR, RCC_APB1ENR_I2C1EN);
-			/* Delay after an RCC peripheral clock enabling */
-			__IO uint32_t tmpreg = READ_BIT(RCC->APB1ENR, RCC_APB1ENR_I2C1EN);
-			(void)(tmpreg);
-		} while(0U);
+		SET_BIT(RCC->APB1ENR, RCC_APB1ENR_I2C1EN);
+		/* Delay after an RCC peripheral clock enabling */
+		__IO uint32_t tmpreg = READ_BIT(RCC->APB1ENR, RCC_APB1ENR_I2C1EN);
+		(void)(tmpreg);
+	} while(0U);
 
 
 	/**I2C1 GPIO Configuration
@@ -70,12 +72,6 @@ PB7     ------> I2C1_SDA
 		rstPin->pinSetUp();
 
 	}
-
-//	base = I2C1;
-//	i2cFreqkHz = 100;
-
-	frameBuffer = &i2cFrame;
-	dataBuffer = &i2cFrame;
 
 	base->CR1 &= ~I2C_CR1_PE;
 	while(base->CR1 & I2C_CR1_PE){;}	// odczekanie na koniec resetu I2C
@@ -108,21 +104,25 @@ PB7     ------> I2C1_SDA
 	//		base->CR1 |= I2C_CR1_STOP;
 	//	}
 
-	i2cFrame.flush();
-	i2cData.flush();
+
+	frame1 = &frame1Fifo;
+	frame2 = &frame2Fifo;
+	dataStream = &dataStreamFifo;
+
+	frame1->flush();
+	frame2->flush();
+	dataStream->flush();
+	frameIrq = frame1;
+
 	state = State::IDLE;
 
+	return true;
 }
-
-//uint8_t i2cFrameBuffer[20];
-//Fifo i2cFrame = Fifo(i2cFrameBuffer, 20);
-
-//volatile bool i2c_Ongoing  = false;
-////volatile bool frameInUse = false;
 
 void STM32F4_i2c::irqEvent(){
 	volatile uint32_t sr2 = base->SR2;
 	uint32_t sr1 = base->SR1;
+	Fifo * frame = frameIrq;
 	if (sr1 & I2C_SR1_SB){
 		base->CR1 |= I2C_CR1_ACK;		// ma byc ack
 		base->DR = slaveAdr << 1;
@@ -130,22 +130,22 @@ void STM32F4_i2c::irqEvent(){
 	}else if (sr1 & I2C_SR1_ADDR){
 		sr2 = base->SR2;
 		(void)(sr2 = -sr2);		//		UNUSED(sr2);
-		uint32_t cnt = i2cFrame.get_count();
-		if (cnt == 0){				// nic do wyslania???
+		if (frame->isEmpty()){				// nic do wyslania???
 			base->CR1 |= I2C_CR1_STOP;
+			state = State::IDLE;
 		}else{
 			base->CR1 |= I2C_CR1_ACK;		// ma byc ack
 			state = State::DATA;
 		}
 	}else if (sr1 & (I2C_SR1_TXE | I2C_SR1_BTF)){
-		if (i2cFrame.isNotEmpty()){
+		if (frame->isNotEmpty()){
 			base->CR1 |= I2C_CR1_ACK;		// ma byc ack
-			base->DR = i2cFrame.get();
+			base->DR = frame->get();
 			state = State::DATA;
 		}else{
 			base->CR1 |= I2C_CR1_STOP;
-			state = State::STOP;
-			//state = I2CSTATE::IDLE;
+			//state = State::STOP;
+			state = State::IDLE;
 			timeStamp = QuickTask::getCounter();
 		}
 	}else{
@@ -182,7 +182,7 @@ void STM32F4_i2c::irqError(){
 }
 
 bool STM32F4_i2c::isBusy(){
-	uint32_t cr1 = base->CR2; // odczyt CR2, zeby nie skasowac przypadkiem ADDR
+	uint32_t cr1 = base->CR2; // odczyt CR2, zeby nie skasowac przypadkiem ADDR ?
 	if (cr1 & I2C_CR1_PE){
 		return base->SR2 & I2C_SR2_BUSY;
 	}
@@ -192,35 +192,61 @@ bool STM32F4_i2c::isBusy(){
 
 void STM32F4_i2c::cyclicJob(){
 
+	// czy zapasowa ramka wolna?
+	Fifo * frameToLoad = nullptr;
+	if (frameIrq == frame1){
+		if (frame2->isEmpty()){
+			frameToLoad = frame2;
+		}
+	}else{ // frameIrq == frame2
+		if (frame2->isEmpty()){
+			activeFrame = 1;
+		}
+	}
+
 	if (isBusy()){
 		timeStamp = QuickTask::getCounter();
 		return;
 	}
 	if (QuickTask::getTimeIntervalMilis(timeStamp) < 8) return;  // 4 ms odstepu do poprzedniej transmisji/ komendy
 
-	if (dataBuffer->isEmpty()) return;
+	if (dataStream->isEmpty()) return;
 
 	if (state != State::IDLE){
 		if (QuickTask::getTimeIntervalMilis(timeStamp) > 1000){  	// jesli powyzej sekundy to timeStamp
-//			if (base->CR1 & I2C_CR1_PE){
-//				base->CR1 &= ~I2C_CR1_PE;	// wylacz i2c
-//			}else{
-//				base->CR1 |= I2C_CR1_PE;
-//				// base->CR1 |= I2C_CR1_SWRST;
-				state = State::IDLE;
-//			}
+			//			if (base->CR1 & I2C_CR1_PE){
+			//				base->CR1 &= ~I2C_CR1_PE;	// wylacz i2c
+			//			}else{
+			//				base->CR1 |= I2C_CR1_PE;
+			//				// base->CR1 |= I2C_CR1_SWRST;
+			state = State::IDLE;
+			//			}
 		}
 		return;
 	}
 	// jest IDLE
-	while (dataBuffer->get() !=  I2C_BLOCK_START){
-		if (dataBuffer->isEmpty()) return;
+
+	// wybrac frame do IRQ
+	if (activeFrame == 1){
+		if (frame1->isEmpty()){
+			activeFrame = 2;
+		}
+	}else{
+		if (frame2->isEmpty()){
+			activeFrame = 1;
+		}
 	}
-	if (dataBuffer->isEmpty()) return;
-	uint8_t amount = dataBuffer->get();
+
+
+
+	while (dataStream->get() !=  I2C_BLOCK_START){
+		if (dataStream->isEmpty()) return;
+	}
+	if (dataStream->isEmpty()) return;
+	uint8_t amount = dataStream->get();
 	for (uint8_t i = 0; i < amount; i++){
-		if (dataBuffer->isEmpty()) return;
-		frameBuffer->put(dataBuffer->get());
+		if (dataStream->isEmpty()) return;
+		frameirq->put(dataStream->get());
 	}
 	state = State::START;
 	base->CR1 |= I2C_CR1_START;
@@ -229,12 +255,12 @@ void STM32F4_i2c::cyclicJob(){
 
 bool STM32F4_i2c::i2cMasterTransmit(uint16_t slaveAdres, uint8_t * buffer, uint16_t amount){
 	slaveAdr = slaveAdres;
-	if (dataBuffer->isFull()) return false;
-	dataBuffer->put(I2C_BLOCK_START);
-	dataBuffer->put(amount);
+	if (dataStream->isFull()) return false;
+	dataStream->put(I2C_BLOCK_START);
+	dataStream->put(amount);
 	for (uint32_t i = 0; i < amount; i++){
-		if (dataBuffer->isFull()) return false;
-		dataBuffer->put(buffer[i]);
+		if (dataStream->isFull()) return false;
+		dataStream->put(buffer[i]);
 	}
 	if (state == State::IDLE){
 		cyclicJob();
