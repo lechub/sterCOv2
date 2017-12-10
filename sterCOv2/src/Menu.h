@@ -108,6 +108,7 @@ public:
 		editParam = param;
 		editValue = Parameter::getValue(editParam);
 		editMode = true;
+		showEkran(editValue);
 	}
 
 	void printPattern(const char * pattern, uint32_t value);

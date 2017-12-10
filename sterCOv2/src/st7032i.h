@@ -111,13 +111,13 @@ public:
 
 	bool cursorLeft(void){
 		sendCommand(LCD_C2L);
-		delayMs(5);
+		//delayMs(5);
 		return true;
 	}
 
 	bool cursorRight(void){
 		sendCommand(LCD_C2R);
-		delayMs(5);
+		//delayMs(5);
 		return true;
 	}
 
@@ -130,7 +130,7 @@ public:
 		default: break;
 		}
 		sendCommand(cmmd);
-		delayMs(5);
+		//delayMs(5);
 		return true;
 	}
 

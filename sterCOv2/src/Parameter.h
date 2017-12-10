@@ -99,7 +99,7 @@ public:
 		case Parameter::Nazwa::POMPA_CWU_TEMP_ZALACZ:
 		case Parameter::Nazwa::ALARM_TEMP_PODAJNIKA:
 			//------>1234567890123456<
-			return  "wlacz >00.0 oC ";
+			return  "wlacz >00.0 oC  ";
 
 		case Parameter::Nazwa::DMUCHAWA_MOC:
 			//------>1234567890123456<

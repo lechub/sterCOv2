@@ -19,25 +19,25 @@ void Menu::poll(){
 
 
 
-		//		//********** DEBUG ************
-		//
-		//		Keyboard::Key key = keys.getKey();
-				static uint8_t pos = 0;
-				pos++;
-				if (pos > 5) pos = 0;
-
-				switch(key){
-				case Keyboard::Key::ENTER: lcd->printXY(1,pos," Enter "); break;
-				case Keyboard::Key::CANCEL: lcd->printXY(1,pos," Cancel "); break;
-				case Keyboard::Key::LEFT: lcd->printXY(1,pos," Left "); break;
-				case Keyboard::Key::RIGHT: lcd->printXY(1,pos," Right "); break;
-				default: break;
-				}
-				return;
-		//
-		//
-		//
-		//		//*****************************
+//		//		//********** DEBUG ************
+//		//
+//		//		Keyboard::Key key = keys.getKey();
+//				static uint8_t pos = 0;
+//				pos++;
+//				if (pos > 5) pos = 0;
+//
+//				switch(key){
+//				case Keyboard::Key::ENTER: lcd->printXY(1,pos," Enter "); break;
+//				case Keyboard::Key::CANCEL: lcd->printXY(1,pos," Cancel "); break;
+//				case Keyboard::Key::LEFT: lcd->printXY(1,pos," Left "); break;
+//				case Keyboard::Key::RIGHT: lcd->printXY(1,pos," Right "); break;
+//				default: break;
+//				}
+//				return;
+//		//
+//		//
+//		//
+//		//		//*****************************
 
 	if (editMode){
 		edit(key);
@@ -199,7 +199,7 @@ void Menu::poll(){
 	case e8_POMPA_CWU:
 	{
 		switch (key){
-		case Keyboard::Key::ENTER:	goToEkran(EKRAN::e8_1_HISTEREZA_CWU); break;  	//Temp załączenia 50 oC:
+		case Keyboard::Key::ENTER:	goToEdit(Parameter::Nazwa::POMPA_CWU_TEMP_ZALACZ); break;  	//Temp załączenia 50 oC:
 		case Keyboard::Key::RIGHT:	goToEkran(EKRAN::e9_OPCJE_SERWISOWE); break;
 		case Keyboard::Key::LEFT: 	goToEkran(EKRAN::e7_HISTEREZA_CO); break;
 		case Keyboard::Key::CANCEL:
@@ -305,11 +305,11 @@ void Menu::printPattern(const char * pattern, uint32_t value){
 	lcd->printNumbersWithPattern(pattern, value);
 	if (editMode){
 		const char * ptr = pattern;
-		while (*ptr++ != '\0'){;}
+		while (*ptr != '\0'){ptr++;}
 		char znak;
 		uint16_t offset = 0;
 		do{
-			znak = char(*ptr - '0');
+			znak = char(*ptr);
 			if (isdigit(znak)) break;
 			ptr--;
 			offset++;
@@ -442,7 +442,7 @@ void Menu::showEkran(uint16_t val){
 	{//---------------------->1234567890123456<
 		lcd->printXY(0,0,    "8. Pompa C.W.U. ");
 		lcd->gotoXY(1,0);
-		param = Parameter::Nazwa::HISTEREZA_CWU_TEMP;
+		param = Parameter::Nazwa::POMPA_CWU_TEMP_ZALACZ;
 		const char * patt = Parameter::getParamPattern(param);
 		printPattern(patt, val);
 	}break;
