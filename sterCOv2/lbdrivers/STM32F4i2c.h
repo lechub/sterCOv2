@@ -58,7 +58,7 @@ private:
 
 	bool init();
 	void cyclicJob();
-	bool isBusy();
+	//bool isBusy();
 	void makeStamp();
 
 public:

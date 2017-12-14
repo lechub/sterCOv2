@@ -129,7 +129,7 @@ PB7     ------> I2C1_SDA
 
 void STM32F4_i2c::irqEvent(){
 	makeStamp();	// i2c cos wlasnie robi (przerwanie)
-	uint32_t sr2;// = base->SR2;
+	uint32_t sr2 = 0xffff;// = base->SR2;
 	uint32_t sr1 = base->SR1;
 	Fifo * frame = frameIrq;
 	if (sr1 & I2C_SR1_SB){
@@ -192,29 +192,20 @@ void STM32F4_i2c::irqError(){
 	timeStamp = QuickTask::getCounter();
 }
 
-bool STM32F4_i2c::isBusy(){
-//	uint32_t cr1 = base->CR2; // odczyt CR2, zeby nie skasowac przypadkiem ADDR ?
-//	cr1 = base->CR1;
-//	if (cr1 & I2C_CR1_PE){
-		return base->SR2 & I2C_SR2_BUSY;
-//	}
-//	return false;
-}
+//bool STM32F4_i2c::isBusy(){
+////	uint32_t cr1 = base->CR2; // odczyt CR2, zeby nie skasowac przypadkiem ADDR ?
+////	cr1 = base->CR1;
+////	if (cr1 & I2C_CR1_PE){
+//		return base->SR2 & I2C_SR2_BUSY;
+////	}
+////	return false;
+//}
 inline void STM32F4_i2c::makeStamp(){ timeStamp = QuickTask::getCounter(); }
 
 void STM32F4_i2c::cyclicJob(){
 
-	//	// czy zapasowa ramka wolna?
-	//	Fifo * frameToLoad = nullptr;
-	//	if (frameIrq == frame1){
-	//		if (frame2->isEmpty()){
-	//			frameToLoad = frame2;
-	//		}
-	//	}else{ // frameIrq == frame2
-	//		if (frame2->isEmpty()){
-	//			activeFrame = 1;
-	//		}
-	//	}
+	if (dataStream->isEmpty()) return;
+
 	frameIrq = frame1;
 	Fifo * frame = frameIrq;
 
@@ -230,16 +221,13 @@ void STM32F4_i2c::cyclicJob(){
 		base->CR1 |= I2C_CR1_PE;
 	}
 
-	if (isBusy()){			// jesli busy
-		timeStamp = QuickTask::getCounter();
-		return;
-	}
+//	if (isBusy()){			// jesli busy
+//		timeStamp = QuickTask::getCounter();
+//		return;
+//	}
 
 
 	if (QuickTask::getTimeIntervalMilis(timeStamp) < COMMAND_MIN_DELAY_MS) return;  // 4 ms odstepu do poprzedniej transmisji/ komendy
-
-
-	if (dataStream->isEmpty()) return;
 
 	// jest IDLE
 
