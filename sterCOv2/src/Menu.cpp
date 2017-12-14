@@ -314,7 +314,7 @@ void Menu::printPattern(const char * pattern, uint32_t value){
 			ptr--;
 			offset++;
 		}while (ptr >= pattern);
-		lcd->cursorLeft(offset);
+		lcd->cursorLeft(offset - 1);
 		lcd->setCursorMode(CURSOR::BLINK);
 	}else{
 		lcd->setCursorMode(CURSOR::NONE);
@@ -330,12 +330,12 @@ void Menu::showEkran(uint16_t val){
 	case e_AUTOMAT:///------->1234567890123456<
 	{
 		uint32_t tpiec = ster->getTempCO();
-		param = Parameter::Nazwa::TEMPERATURA_CO;
-		const char * patt = Parameter::getParamPattern(param);
 		lcd->gotoXY(0,0);
 		//--------------------------->1234567890123456<
 		lcd->printNumbersWithPattern("T. pieca:00.0 oC",tpiec);
 		lcd->gotoXY(1,0);
+		param = Parameter::Nazwa::TEMPERATURA_CO;
+		const char * patt = Parameter::getParamPattern(param);
 		printPattern(patt,val);
 	}break;
 	case e1_PRACA_RECZNA://->1234567890123456<

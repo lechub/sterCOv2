@@ -97,14 +97,24 @@ bool itoaWithPattern(char * const pattern, uint32_t initValue){
 	while (*txt != '\0'){ txt++; }		// wyszukanie konca wzoru
 	while(txt > pattern){				// dzialanie od konca do poczatku
 		txt--;
-		if  ((*txt == patternChar)||(*txt == patternCharInv)) {
-			uint8_t cyfra = (uint8_t)(initValue % 10);
-			initValue /= 10;
+		uint8_t znak = *txt;
+		uint8_t dzielnik = 100;
+		bool znaczace = true;
+		if (znak == patternCharInv){
+			znaczace = true;
+			dzielnik = 10;
+		}else if(znak == '0'){
+			dzielnik = 10;
+		}else if ((znak >= '2')&&(znak <= '9')) {
+			dzielnik = znak - '0';
+		}
+		if (dzielnik < 11){
+			uint8_t cyfra = (uint8_t)(initValue % dzielnik);
+			initValue /= dzielnik;
 			if ((cyfra == 0) && (initValue == 0)){
-				if (*txt == patternCharInv)	*txt = ' ';	// spacja dla niewidocznych zer
+				if (!znaczace)	*txt = ' ';	// spacja dla niewidocznych zer
 			}
 			else *txt = (char)(cyfra + '0');
-
 		}	// else{ ;} // nic nie zapisuj, tylko przesun
 	}
 	return initValue == 0;
