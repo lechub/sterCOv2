@@ -34,8 +34,8 @@ Fifo frame1Fifo = Fifo(frameBuffer1, 50);
 uint8_t frameBuffer2[50];
 Fifo frame2Fifo = Fifo(frameBuffer1, 50);
 
-uint8_t dataFifo[200];
-Fifo dataStreamFifo = Fifo(dataFifo, 200);
+uint8_t dataFifo[250];
+Fifo dataStreamFifo = Fifo(dataFifo, 250);
 
 // ****************************************************************
 bool STM32F4_i2c::init(InitDefs * initDefsPtr){
@@ -129,7 +129,7 @@ PB7     ------> I2C1_SDA
 
 void STM32F4_i2c::irqEvent(){
 	makeStamp();	// i2c cos wlasnie robi (przerwanie)
-	uint32_t sr2 = base->SR2;
+	uint32_t sr2;// = base->SR2;
 	uint32_t sr1 = base->SR1;
 	Fifo * frame = frameIrq;
 	if (sr1 & I2C_SR1_SB){
@@ -137,7 +137,7 @@ void STM32F4_i2c::irqEvent(){
 		base->DR = slaveAdr << 1;
 		setState(State::ADR);
 	}else if (sr1 & I2C_SR1_ADDR){
-		sr2 = base->SR2;
+		sr2 = base->SR2;		// odczyt SR2 po SR1 gasi ADDR
 		(void)(sr2 = -sr2);		//		UNUSED(sr2);
 		if (frame->isEmpty()){				// nic do wyslania???
 			base->CR1 |= I2C_CR1_STOP;
@@ -193,11 +193,12 @@ void STM32F4_i2c::irqError(){
 }
 
 bool STM32F4_i2c::isBusy(){
-	uint32_t cr1 = base->CR2; // odczyt CR2, zeby nie skasowac przypadkiem ADDR ?
-	if (cr1 & I2C_CR1_PE){
+//	uint32_t cr1 = base->CR2; // odczyt CR2, zeby nie skasowac przypadkiem ADDR ?
+//	cr1 = base->CR1;
+//	if (cr1 & I2C_CR1_PE){
 		return base->SR2 & I2C_SR2_BUSY;
-	}
-	return false;
+//	}
+//	return false;
 }
 inline void STM32F4_i2c::makeStamp(){ timeStamp = QuickTask::getCounter(); }
 
@@ -258,7 +259,7 @@ void STM32F4_i2c::cyclicJob(){
 
 bool STM32F4_i2c::masterTransmit(uint8_t * buffer, uint8_t amount){
 
-	if (dataStream->countFree() < (2ul + amount)) return false; // nie zmiesci sie
+	if (dataStream->countFree() < (3ul + amount)) return false; // nie zmiesci sie
 	dataStream->put(I2C_BLOCK_START);
 	dataStream->put(amount);
 	for (uint32_t i = 0; i < amount; i++){			//if (dataStream->isFull()) return false;

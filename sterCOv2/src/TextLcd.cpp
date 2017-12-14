@@ -34,7 +34,7 @@ bool TextLcd::printWDot(uint32_t value){
  */
 bool TextLcd::printNumbersWithPattern(const char * pattern, uint32_t initValue){
 	char bufor [20];
-	my_strcpy(bufor, pattern, false);	// skopiowanie wzoru
+	my_strcpy(bufor, pattern, true);	// skopiowanie wzoru razem z terminacja
 	itoaWithPattern(bufor, initValue);
 	print(bufor);
 	return true;

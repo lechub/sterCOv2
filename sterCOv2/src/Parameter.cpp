@@ -15,6 +15,28 @@
 //
 //}
 
+const Parameter::ParamConstDefs Parameter::paramDefsTable[LAST_PARAMETER+1] = {
+		{ NONE, 0, 0, 0},
+		{ MODE_AUTO_MANUAL, 	0,		1, 		1},
+		{ TEMPERATURA_CO, 		20,		600,	980},
+		{ HISTEREZA_CO_TEMP, 	1, 		20,		200},
+		{ POMPA_CO_TEMP_ZALACZ, 200, 	450,	980},
+		{ PODAJNIK_PRACA, 		1,		50,		300},
+		{ PODAJNIK_PRZERWA,		10,		60*5,	60*60*10},
+		{ PODAJNIK_OPOZNIENIE, 	1,		50,		300},
+		{ PODTRZYMANIE_PRACA,	1, 		30,		200},
+		{ PODTRZYMANIE_PRZERWA, 10,		60*6,	60*60*10},
+		{ OPOZNIENIE_DMUCHAWY, 	1, 		20, 	300},
+		{ DMUCHAWA_MOC, 		1, 		6, 		10},
+		{ ALARM_SPADKU_TEMP, 	100,	450,	980},
+		{ ALARM_TEMP_PODAJNIKA, 300, 	850,	1500},
+		{ POMPA_CWU_TEMP_ZALACZ, 200,	450,	980},
+		{ HISTEREZA_CWU_TEMP, 	1,		20,		200},
+		{ TRYB_LETNI, 			0, 		0, 		1},
+		{ AKTYWNA_CWU, 			0, 		0, 		1},
+		{ USTAWIENIA_FABRYCZNE, 0, 		0,		1},	// znacznik powrotu do fabrycznych
+		{ LAST_PARAMETER, 		0,		0,		1},
+};
 
 
 bool FlashUnlock(void);

@@ -51,6 +51,24 @@ public:
 		LAST_PARAMETER
 	}Nazwa;
 
+private:
+	typedef struct{
+		Nazwa		param;
+		uint16_t	minValue;
+		uint16_t	defValue;
+		uint16_t	maxValue;
+	}ParamConstDefs;
+
+	static const ParamConstDefs paramDefsTable[LAST_PARAMETER+1];
+
+	static const ParamConstDefs * getConstDefs(Nazwa nazwa){
+		for (uint8_t i = 0; i< LAST_PARAMETER; i++){
+			if (paramDefsTable[i].param == nazwa) return &paramDefsTable[i];
+		}
+		return nullptr;
+	}
+
+public:
 	typedef enum{
 		LATO = 1,
 		ZIMA = 2,
@@ -69,6 +87,7 @@ public:
 	}
 
 	static bool setValue(Nazwa nazwa, uint16_t newValue){
+		newValue = adjustValueToFit(nazwa, newValue);
 		return setEEpromValue(nazwa, newValue);
 	}
 
@@ -122,41 +141,65 @@ public:
 
 	static bool initEepromMemory();
 
+
 	static uint16_t getDefaultValue(Nazwa nazwa){
-		switch(nazwa){
-		case Nazwa::MODE_AUTO_MANUAL:		return uint16_t(true);
-		case Nazwa::TEMPERATURA_CO: 		return 600u;
-		case Nazwa::HISTEREZA_CO_TEMP:		return 20u;
-		case Nazwa::POMPA_CO_TEMP_ZALACZ:	return 450u;
-		case Nazwa::PODAJNIK_PRACA: 		return 50u;
-		case Nazwa::PODAJNIK_PRZERWA:		return 60*5;
-		case Nazwa::PODAJNIK_OPOZNIENIE: 	return 50u;
-		case Nazwa::PODTRZYMANIE_PRACA: 	return 20u;
-		case Nazwa::PODTRZYMANIE_PRZERWA:	return 60*6;
-		case Nazwa::OPOZNIENIE_DMUCHAWY:	return 20u;
-		case Nazwa::DMUCHAWA_MOC: 			return 6u;
-		case Nazwa::ALARM_SPADKU_TEMP:		return 450u;
-		case Nazwa::ALARM_TEMP_PODAJNIKA:	return 850u;
-		case Nazwa::POMPA_CWU_TEMP_ZALACZ:	return 450u;
-		case Nazwa::HISTEREZA_CWU_TEMP:		return 20u;
-		case Nazwa::TRYB_LETNI:				return uint16_t(false);
-		case Nazwa::AKTYWNA_CWU:			return uint16_t(false);
-		case Nazwa::NONE:
-		case Nazwa::USTAWIENIA_FABRYCZNE:
-		case Nazwa::LAST_PARAMETER:
-		default:
-			break;
-		}
-		return 100u;
+		const ParamConstDefs * par = getConstDefs(nazwa);
+		if (par == nullptr) return 10;
+		return par->defValue;
 	}
 
 
-	static bool setDefaultValues(){
+
+	static uint16_t adjustValueToFit(Nazwa nazwa, uint32_t value){
+		const ParamConstDefs * par = getConstDefs(nazwa);
+		if (par == nullptr) return 99;
+		if (value > par->maxValue) value = par->maxValue;
+		if (value < par->minValue) value = par->minValue;
+		return value;
+	}
+
+
+	static bool saveDefaultValues(){
 		for (uint16_t i = 1; i < uint16_t(Nazwa::LAST_PARAMETER); i++){
 			Nazwa param = Nazwa(i);
 			setValue(param, getDefaultValue(param) );
 		}
 	}
+
+
+};
+
+
+
+//	static uint16_t getDefaultValue(Nazwa nazwa){
+//		switch(nazwa){
+//		case Nazwa::MODE_AUTO_MANUAL:		return uint16_t(true);
+//		case Nazwa::TEMPERATURA_CO: 		return 600u;
+//		case Nazwa::HISTEREZA_CO_TEMP:		return 20u;
+//		case Nazwa::POMPA_CO_TEMP_ZALACZ:	return 450u;
+//		case Nazwa::PODAJNIK_PRACA: 		return 50u;
+//		case Nazwa::PODAJNIK_PRZERWA:		return 60*5;
+//		case Nazwa::PODAJNIK_OPOZNIENIE: 	return 50u;
+//		case Nazwa::PODTRZYMANIE_PRACA: 	return 20u;
+//		case Nazwa::PODTRZYMANIE_PRZERWA:	return 60*6;
+//		case Nazwa::OPOZNIENIE_DMUCHAWY:	return 20u;
+//		case Nazwa::DMUCHAWA_MOC: 			return 6u;
+//		case Nazwa::ALARM_SPADKU_TEMP:		return 450u;
+//		case Nazwa::ALARM_TEMP_PODAJNIKA:	return 850u;
+//		case Nazwa::POMPA_CWU_TEMP_ZALACZ:	return 450u;
+//		case Nazwa::HISTEREZA_CWU_TEMP:		return 20u;
+//		case Nazwa::TRYB_LETNI:				return uint16_t(false);
+//		case Nazwa::AKTYWNA_CWU:			return uint16_t(false);
+//		case Nazwa::NONE:
+//		case Nazwa::USTAWIENIA_FABRYCZNE:
+//		case Nazwa::LAST_PARAMETER:
+//		default:
+//			break;
+//		}
+//		return 100u;
+//	}
+
+
 
 //	static bool setDefaultValues(){
 //		for (uint16_t i = 1; i < uint16_t(Nazwa::LAST_PARAMETER); i++){
@@ -189,7 +232,7 @@ public:
 //		}
 //	}
 
-};
+
 
 
 //	typedef struct {

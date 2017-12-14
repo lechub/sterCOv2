@@ -246,7 +246,7 @@ void Menu::poll(){
 	{
 		switch (key){
 		case Keyboard::Key::ENTER:
-			Parameter::setDefaultValues();
+			Parameter::saveDefaultValues();
 			lcd->printXY(1,0, "  ZRESETOWANE!  ");
 			break;
 		case Keyboard::Key::RIGHT:	goToEkran(EKRAN::e9_2_POMPA_CWU_AKTYWNA); break;
@@ -537,7 +537,7 @@ bool Menu::edit(Keyboard::Key key){
 	case Parameter::Nazwa::DMUCHAWA_MOC:
 	{
 		switch(key){
-		case Keyboard::Key::RIGHT:		editValue++;	break;
+		case Keyboard::Key::RIGHT:		if(editValue < Silnik::MAX_POWER) editValue++; break;
 		case Keyboard::Key::LEFT:		if (editValue > 0) editValue--; break;
 		case Keyboard::Key::CANCEL:
 		case Keyboard::Key::ENTER:		Parameter::setValue(editParam, editValue); editMode = false;  break;

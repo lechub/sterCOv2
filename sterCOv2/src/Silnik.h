@@ -22,7 +22,7 @@ private:
 	static Silnik * firstSilnik;
 	Gpio * gpio;
 	Silnik * nextSilnik;
-	uint8_t wypelnienie = 10;
+	uint8_t wypelnienie = MAX_POWER;
 	bool turnedOn = false;
 
 public:
@@ -83,11 +83,12 @@ public:
 		Silnik * sil = firstSilnik;
 		while(sil != nullptr){
 			if (sil->turnedOn){
-			sil->switchLevel(sil->wypelnienie >= krok);
-			sil = sil->nextSilnik;
+				sil->switchLevel(sil->wypelnienie >= krok);
+				sil = sil->nextSilnik;
 			}else{
 				sil->switchOff();
 			}
+			sil = sil->nextSilnik;
 		}
 	}
 
