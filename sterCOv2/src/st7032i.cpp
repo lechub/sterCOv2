@@ -30,7 +30,7 @@ bool ST7032I::sendData(uint8_t data){
 
 
 // LCD initialization procedure
-void ST7032I::init(STM32F4_i2c * i2cPtr){
+void ST7032I::init(MyI2C * i2cPtr){
 	i2c = i2cPtr;
 	i2c->setSlaveAdres(ST7032I_ADDRESS);
 	//Hardware::i2cInit();

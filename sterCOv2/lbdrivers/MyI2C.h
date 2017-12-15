@@ -5,14 +5,14 @@
  *      Author: lechu
  */
 
-#ifndef STM32F4I2C_H_
-#define STM32F4I2C_H_
+#ifndef MYI2C_H_
+#define MYI2C_H_
 
 #include "stm32f4xx.h"
 #include "Gpio.h"
 #include "Fifo.h"
 
-class STM32F4_i2c {
+class MyI2C {
 public:
 	static constexpr uint32_t TIMEOUT_MS = 1000;
 	static constexpr uint32_t COMMAND_MIN_DELAY_MS = 8;
@@ -62,7 +62,7 @@ private:
 	void makeStamp();
 
 public:
-	static STM32F4_i2c * getInstance();
+	static MyI2C * getInstance();
 
 	bool init(InitDefs * initDefsPtr);
 
@@ -99,4 +99,4 @@ void I2C1_ER_IRQHandler(void) __attribute__ ((interrupt));
 }
 #endif
 
-#endif /* STM32F4I2C_H_ */
+#endif /* MYI2C_H_ */

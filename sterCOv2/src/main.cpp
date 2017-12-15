@@ -54,7 +54,7 @@ void static inline keyb_callback(){  keys.co10ms(); }
 // periodycznie wykonywana funkcja monitor() opakowana w aku_callback()
 QuickTask keybQtsk(QuickTask::QT_PERIODIC, keyb_callback, Keyboard::TIME_PERIOD_KEYB_MS);
 
-STM32F4_i2c::InitDefs i2cInitDefs;
+MyI2C::InitDefs i2cInitDefs;
 
 //int main (int argc, char* argv[])
 void main()
@@ -71,7 +71,7 @@ void main()
 	i2cInitDefs.scl = &pins.gpioSCL;
 	i2cInitDefs.resetPin = &pins.gpioLcdReset;
 	i2cInitDefs.backLight = &pins.gpioLcdBackLight;
-	STM32F4_i2c * i2c = STM32F4_i2c::getInstance();
+	MyI2C * i2c = MyI2C::getInstance();
 	i2c->init(&i2cInitDefs);
 
 	st7032iDriver.init(i2c);

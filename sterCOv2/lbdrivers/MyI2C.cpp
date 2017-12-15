@@ -5,21 +5,21 @@
  *      Author: lechu
  */
 
-#include <STM32F4i2c.h>
+#include <MyI2C.h>
 #include "QuickTask.h"
 #include "Hardware.h"
 #include "stm32f4xx.h"
 
-STM32F4_i2c i2cInstance = STM32F4_i2c();
+MyI2C i2cInstance = MyI2C();
 
-STM32F4_i2c * STM32F4_i2c::getInstance(){ return &i2cInstance; }
+MyI2C * MyI2C::getInstance(){ return &i2cInstance; }
 
 
 
 /**
  * Aktywny delay - ale musi byc uruchomiony Systick z QuickTask
  */
-void STM32F4_i2c::dirtyDelayMs(uint32_t miliseconds){
+void MyI2C::dirtyDelayMs(uint32_t miliseconds){
 	volatile uint32_t tmp = QuickTask::getCounter();
 	while(QuickTask::getCounter() - tmp < miliseconds ){
 		cyclicJob();
@@ -28,17 +28,14 @@ void STM32F4_i2c::dirtyDelayMs(uint32_t miliseconds){
 // ****************************************************************
 
 
-uint8_t frameBuffer1[50];
-Fifo frame1Fifo = Fifo(frameBuffer1, 50);
+uint8_t frameBuffer1[30];
+Fifo frame1Fifo = Fifo(frameBuffer1, 30);
 
-uint8_t frameBuffer2[50];
-Fifo frame2Fifo = Fifo(frameBuffer1, 50);
-
-uint8_t dataFifo[250];
-Fifo dataStreamFifo = Fifo(dataFifo, 250);
+uint8_t dataFifo[100];
+Fifo dataStreamFifo = Fifo(dataFifo, 100);
 
 // ****************************************************************
-bool STM32F4_i2c::init(InitDefs * initDefsPtr){
+bool MyI2C::init(InitDefs * initDefsPtr){
 	base = initDefsPtr->base;
 	if (base == nullptr) base = I2C1;
 	if (initDefsPtr->sda == nullptr) Hardware::errorDispatch(Hardware::ErrorCode::Failure);
@@ -51,7 +48,7 @@ bool STM32F4_i2c::init(InitDefs * initDefsPtr){
 	return init();
 }
 
-bool STM32F4_i2c::init(){
+bool MyI2C::init(){
 	// RCC
 	do {
 		SET_BIT(RCC->APB1ENR, RCC_APB1ENR_I2C1EN);
@@ -127,7 +124,7 @@ PB7     ------> I2C1_SDA
 	return true;
 }
 
-void STM32F4_i2c::irqEvent(){
+void MyI2C::irqEvent(){
 	makeStamp();	// i2c cos wlasnie robi (przerwanie)
 	uint32_t sr2 = 0xffff;// = base->SR2;
 	uint32_t sr1 = base->SR1;
@@ -168,7 +165,7 @@ void STM32F4_i2c::irqEvent(){
 }
 
 
-void STM32F4_i2c::irqError(){
+void MyI2C::irqError(){
 	static uint32_t err = 0;
 	err++;
 	uint32_t sr1 = base->SR1;
@@ -200,9 +197,9 @@ void STM32F4_i2c::irqError(){
 ////	}
 ////	return false;
 //}
-inline void STM32F4_i2c::makeStamp(){ timeStamp = QuickTask::getCounter(); }
+inline void MyI2C::makeStamp(){ timeStamp = QuickTask::getCounter(); }
 
-void STM32F4_i2c::cyclicJob(){
+void MyI2C::cyclicJob(){
 
 	if (dataStream->isEmpty()) return;
 
@@ -245,7 +242,7 @@ void STM32F4_i2c::cyclicJob(){
 }
 
 
-bool STM32F4_i2c::masterTransmit(uint8_t * buffer, uint8_t amount){
+bool MyI2C::masterTransmit(uint8_t * buffer, uint8_t amount){
 
 	if (dataStream->countFree() < (3ul + amount)) return false; // nie zmiesci sie
 	dataStream->put(I2C_BLOCK_START);

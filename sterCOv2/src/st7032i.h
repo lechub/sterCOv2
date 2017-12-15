@@ -10,9 +10,9 @@
 #ifndef ST7032I_H_
 #define ST7032I_H_
 
+#include <MyI2C.h>
 #include <stdint.h>
 #include "Hardware.h"
-#include "STM32F4i2c.h"
 
 #define LCD5V 1		//
 
@@ -79,7 +79,7 @@ private:
 
 	inline void delayMs(uint32_t milis){ i2c->dirtyDelayMs(milis); }
 
-	STM32F4_i2c * i2c = nullptr;
+	MyI2C * i2c = nullptr;
 
 public:
 	//	ST7032I(I2C_HandleTypeDef * i2cHandle){ hi2c = i2cHandle; };
@@ -92,7 +92,7 @@ public:
 //	}
 
 
-	void init(STM32F4_i2c * i2cPtr);
+	void init(MyI2C * i2cPtr);
 
 	void poll(){ i2c->poll(); }
 

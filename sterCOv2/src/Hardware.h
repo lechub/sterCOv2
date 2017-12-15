@@ -8,9 +8,8 @@
 #ifndef HARDWARE_H_
 #define HARDWARE_H_
 
+#include <MyI2C.h>
 #include "stm32f4xx.h"
-#include "STM32F4i2c.h"
-
 #include "Fifo.h"
 
 class Hardware {
