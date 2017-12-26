@@ -40,6 +40,7 @@ public:
 		e9_1_USTAWIENIA_FABRYCZNE,
 		e9_2_POMPA_CWU_AKTYWNA, // aktywna/nieaktywna,
 		e9_3_ALARM_TEMP_PODAJNIKA,// alarm 85 oC,
+		e_DEBUG_INFO,		// ekran z informacjami debugowymi
 	}EKRAN;
 
 

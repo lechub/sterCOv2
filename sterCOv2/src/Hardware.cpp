@@ -334,12 +334,10 @@ Gpio analog5 = Gpio(GPIOA, 1);
 void Hardware::adcInit(){
 
 	const uint32_t dataLength = Pomiar::Analogi::count;
-	uint32_t dataPtr = (uint32_t)Pomiar::getDataTablePtr();
+	uint16_t *dataPtr = Pomiar::getDataTablePtr();
 
 	// ---------- RCC ---------------
 
-	// wlaczenie zegara dla ADC
-	RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
 	// wlaczenie zegara dla DMA2
 	RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
 
@@ -355,19 +353,34 @@ void Hardware::adcInit(){
 	// ----------DMA ---------------
 	/* Disable the peripheral */
 
-	DMA2_Stream0->CR  &=  ~((uint32_t)0x00000001);
+	DMA2_Stream0->CR  &=  ~(DMA_SxCR_EN);   // wylaczenie DMA
+	while(DMA2_Stream0->CR & DMA_SxCR_EN){;}	// odczekanie na wylaczenie
 
 
 	DMA2_Stream0->CR  &= (uint32_t)(~DMA_SxCR_DBM);		// reset double buffer
 
-	/* Configure DMA Stream data length */
-
-	DMA2_Stream0->NDTR = dataLength;
-
 	//	   /* Peripheral to Memory */
-	DMA2_Stream0->PAR = ADC1->DR;	//Peripheral
+	DMA2_Stream0->PAR = uint32_t(&(ADC1->DR));	//Peripheral
+
 	//	     /* Configure DMA Stream source address */
 	DMA2_Stream0->M0AR = (uint32_t)dataPtr;
+
+	/* Configure DMA Stream data length */
+	DMA2_Stream0->NDTR = dataLength;
+
+	DMA2_Stream0->CR  = 0ul
+			| DMA_SxCR_MSIZE_0					// 16 bit mem transfer
+			| DMA_SxCR_PSIZE_0					// 16 bit periph
+			| DMA_SxCR_MINC					// memory incremented
+			| DMA_SxCR_CIRC					// circular
+			| DMA_SxCR_DIR_0					// periph to mem
+			| DMA_SxCR_PFCTRL					// periph flow controler
+			| DMA_SxCR_TCIE					// transfer complete interrupt
+			| DMA_SxCR_DMEIE					// direct mode error interrupt
+			| DMA_SxCR_TEIE					// transfer error interrupt
+			;		//
+
+
 
 
 	/* Enable all interrupts */
@@ -376,6 +389,12 @@ void Hardware::adcInit(){
 	//	  DMA2_Stream0->CR |= DMA_SxCR_HTIE | DMA_SxCR_TCIE | DMA_SxCR_TEIE | DMA_SxCR_DMEIE;
 
 	//	  DMA2_Stream0->FCR |= DMA_SxFCR_FEIE; //DMA_IT_FE;
+
+	// kasowanie zdarzen
+	uint32_t lisr = DMA2->LISR;
+	if (lisr != 0) DMA2->LIFCR = lisr;
+	uint32_t hisr = DMA2->HISR;
+	if (hisr != 0) DMA2->HIFCR = hisr;
 
 	/* Enable the Peripheral */
 	DMA2_Stream0->CR |=  DMA_SxCR_EN;	// poszly konie
@@ -386,11 +405,15 @@ void Hardware::adcInit(){
 
 	//  ---------------- ADC ------------------
 
+	// wlaczenie zegara dla ADC
+	RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
+
 	/* Set ADC parameters */
 	/* Set the ADC clock prescaler */
 	ADC->CCR |=
 			ADC_CCR_TSVREFE |							// Temperature sensor enabled
-			ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1;		// prescaler PCLK2 /8
+			ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1			// prescaler PCLK2 /8
+	;
 
 	/* Set ADC scan mode */
 	ADC1->CR1 |= ADC_CR1_SCAN
@@ -436,17 +459,14 @@ void Hardware::adcInit(){
 	/* Set ADC resolution */
 	/* Set ADC data alignment */
 
-	/* Enable or disable ADC continuous conversion mode */
-	ADC1->CR2 |=
-			//			  ADC_CR2_ALIGN |
-			//			ADC_CR2_DMA |	// lecimy DMA
-			ADC_CR2_DDS |	// wznawiamy DMA po ostatniej konwersji
-			ADC_CR2_CONT ;
-
 
 	/* Enable or disable ADC DMA continuous request */
-	ADC1->CR2 |= ADC_CR2_DDS
-			|  ADC_CR2_ADON		// ADC wlaczone
+	ADC1->CR2 |= 0ul
+			//			  ADC_CR2_ALIGN |
+			| ADC_CR2_DMA 	// lecimy DMA - pozniej
+			| ADC_CR2_DDS 	// wznawiamy DMA po ostatniej konwersji
+			| ADC_CR2_CONT
+			| ADC_CR2_ADON		// ADC wlaczone
 			;
 
 
@@ -459,11 +479,15 @@ void Hardware::adcInit(){
 	}
 
 
-	ADC1->SR &= ~ADC_SR_EOC;
+//	ADC1->SR &= ~ADC_SR_EOC;
 
 
-	ADC1->CR2 |= ADC_CR2_DMA;
+//	ADC1->CR2 |= 0
+//			| ADC_CR2_DMA
+////			| ADC_CR2_SWSTART
+//			;
 
+	ADC1->CR2 |= ADC_CR2_SWSTART;
 
 }
 
@@ -517,6 +541,12 @@ void Hardware::delayMs(uint32_t milis){
 void DMA2_Stream0_IRQHandler(void){
 	static volatile uint32_t dmairq = 1;
 	dmairq++;
+	// kasowanie zdarzen
+	uint32_t lisr = DMA2->LISR;
+	if (lisr != 0) DMA2->LIFCR = lisr;
+	uint32_t hisr = DMA2->HISR;
+	if (hisr != 0) DMA2->HIFCR = hisr;
+
 }
 
 void DMA1_Stream0_IRQHandler(void){
@@ -527,6 +557,10 @@ void DMA1_Stream0_IRQHandler(void){
 void ADC_IRQHandler(void){
 	static volatile uint32_t adcirq = 1;
 	adcirq++;
+	uint32_t sr = ADC1->SR;
+	if (sr & ADC_SR_EOC){
+		adcirq--;
+	}
 }
 
 

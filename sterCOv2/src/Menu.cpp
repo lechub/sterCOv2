@@ -19,25 +19,25 @@ void Menu::poll(){
 
 
 
-//		//		//********** DEBUG ************
-//		//
-//		//		Keyboard::Key key = keys.getKey();
-//				static uint8_t pos = 0;
-//				pos++;
-//				if (pos > 5) pos = 0;
-//
-//				switch(key){
-//				case Keyboard::Key::ENTER: lcd->printXY(1,pos," Enter "); break;
-//				case Keyboard::Key::CANCEL: lcd->printXY(1,pos," Cancel "); break;
-//				case Keyboard::Key::LEFT: lcd->printXY(1,pos," Left "); break;
-//				case Keyboard::Key::RIGHT: lcd->printXY(1,pos," Right "); break;
-//				default: break;
-//				}
-//				return;
-//		//
-//		//
-//		//
-//		//		//*****************************
+	//		//		//********** DEBUG ************
+	//		//
+	//		//		Keyboard::Key key = keys.getKey();
+	//				static uint8_t pos = 0;
+	//				pos++;
+	//				if (pos > 5) pos = 0;
+	//
+	//				switch(key){
+	//				case Keyboard::Key::ENTER: lcd->printXY(1,pos," Enter "); break;
+	//				case Keyboard::Key::CANCEL: lcd->printXY(1,pos," Cancel "); break;
+	//				case Keyboard::Key::LEFT: lcd->printXY(1,pos," Left "); break;
+	//				case Keyboard::Key::RIGHT: lcd->printXY(1,pos," Right "); break;
+	//				default: break;
+	//				}
+	//				return;
+	//		//
+	//		//
+	//		//
+	//		//		//*****************************
 
 	if (editMode){
 		edit(key);
@@ -58,7 +58,7 @@ void Menu::poll(){
 		switch (key){
 		case Keyboard::Key::ENTER:	goToEdit(Parameter::Nazwa::TEMPERATURA_CO); break;
 		case Keyboard::Key::RIGHT:	goToEkran(EKRAN::e1_PRACA_RECZNA); break;
-		case Keyboard::Key::LEFT: 	goToEkran(EKRAN::e9_OPCJE_SERWISOWE); break;
+		case Keyboard::Key::LEFT: 	goToEkran(EKRAN::e_DEBUG_INFO); break;
 		case Keyboard::Key::CANCEL:
 		default:					goToEkran(EKRAN::e_AUTOMAT); break;
 		}
@@ -236,7 +236,7 @@ void Menu::poll(){
 	{
 		switch (key){
 		case Keyboard::Key::ENTER:	goToEkran(EKRAN::e9_1_USTAWIENIA_FABRYCZNE); break;  //(min:  break; 30 sek):  ;
-		case Keyboard::Key::RIGHT:	goToEkran(EKRAN::e1_PRACA_RECZNA); break;
+		case Keyboard::Key::RIGHT:	goToEkran(EKRAN::e_DEBUG_INFO); break;
 		case Keyboard::Key::LEFT: 	goToEkran(EKRAN::e8_POMPA_CWU); break;
 		case Keyboard::Key::CANCEL:
 		default:					goToEkran(EKRAN::e_AUTOMAT); break;
@@ -278,6 +278,16 @@ void Menu::poll(){
 		case Keyboard::Key::LEFT: 	goToEkran(EKRAN::e9_2_POMPA_CWU_AKTYWNA); break;
 		case Keyboard::Key::CANCEL:
 		default:					goToEkran(EKRAN::e9_OPCJE_SERWISOWE); break;
+		}
+	}break;
+	case e_DEBUG_INFO: // alarm 85 oC
+	{
+		switch (key){
+		case Keyboard::Key::ENTER:	goToEkran(EKRAN::e_DEBUG_INFO); break;
+		case Keyboard::Key::RIGHT:	goToEkran(EKRAN::e_AUTOMAT); break;
+		case Keyboard::Key::LEFT: 	goToEkran(EKRAN::e9_OPCJE_SERWISOWE); break;
+		case Keyboard::Key::CANCEL:
+		default:					goToEkran(EKRAN::e_AUTOMAT); break;
 		}
 	}break;
 	default: goToEkran(EKRAN::e_AUTOMAT); break;
@@ -490,6 +500,18 @@ void Menu::showEkran(uint16_t val){
 		param = Parameter::Nazwa::ALARM_TEMP_PODAJNIKA;
 		const char * patt = Parameter::getParamPattern(param);
 		printPattern(patt, val);
+	}break;
+	case e_DEBUG_INFO:  // alarm 85 oC
+	{//---------------------->1234567890123456<
+		uint32_t temp;
+		lcd->gotoXY(0,0);
+		temp = ster->getTempCWU();
+		//--------------------------->1234567890123456<
+		lcd->printNumbersWithPattern("T. CWU:  00.0 oC",temp);
+		lcd->gotoXY(1,0);
+		temp = ster->getTempPodajnika();
+		//--------------------------->1234567890123456<
+		lcd->printNumbersWithPattern("T. pod:  00.0 oC",temp);
 	}break;
 	default:
 		break;
