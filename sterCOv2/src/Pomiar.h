@@ -35,7 +35,7 @@ public:
 		TEMP_CO = 2,
 		TEMP_CWU = 3,
 		TERMIK = 4,
-		UNUSED = 7,
+		UNUSED = 5,
 		TEMP_uP = 6,
 		count = 7,	// ilosc wejsc = 6
 	} Analogi;
@@ -109,7 +109,7 @@ public:
 
 
 	//	static void * getDataTablePtr(){ return (void*)dataTable; }
-	static uint16_t * getDataTablePtr();
+	static volatile uint16_t * getDataTablePtr();
 };
 
 

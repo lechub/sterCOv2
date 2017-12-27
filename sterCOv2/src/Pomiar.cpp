@@ -12,12 +12,18 @@
 
 constexpr uint8_t  ADC_INPUTS = Pomiar::Analogi::count;
 
-volatile uint16_t dataTable[ADC_INPUTS];
+typedef union{
+	volatile uint32_t dummy;
+	volatile uint16_t dataTable[ADC_INPUTS * 2];
+}DataPomiar;
+
+DataPomiar data;
+
 
 uint16_t Pomiar::getPomiarRaw(Pomiar::Analogi nr){
 	if (nr >= ADC_INPUTS) return 0xfffe;
-		return dataTable[nr];
+		return data.dataTable[nr];
 }
 
 
-uint16_t * Pomiar::getDataTablePtr(){ return (uint16_t*) dataTable; }
+volatile uint16_t * Pomiar::getDataTablePtr(){ return  data.dataTable; }

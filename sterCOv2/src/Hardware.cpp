@@ -364,12 +364,7 @@ Gpio analog5 = Gpio(GPIOA, 1);
 void Hardware::adcInit(){
 
 	const uint32_t dataLength = Pomiar::Analogi::count;
-	uint16_t *dataPtr = Pomiar::getDataTablePtr();
-
-	// ---------- RCC ---------------
-
-	// wlaczenie zegara dla DMA2
-	RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
+	volatile uint16_t *dataPtr = Pomiar::getDataTablePtr();
 
 	// ----------GPIO ---------------
 
@@ -379,6 +374,12 @@ void Hardware::adcInit(){
 	analog3.setup(Gpio::GpioMode::ANALOG, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::NoPull, Gpio::GpioSpeed::HighSpeed);
 	analog4.setup(Gpio::GpioMode::ANALOG, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::NoPull, Gpio::GpioSpeed::HighSpeed);
 	analog5.setup(Gpio::GpioMode::ANALOG, Gpio::GpioOType::NoMatter, Gpio::GpioPuPd::NoPull, Gpio::GpioSpeed::HighSpeed);
+
+	// ---------- RCC ---------------
+
+	// wlaczenie zegara dla DMA2
+	RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
+
 
 	// ----------DMA ---------------
 	/* Disable the peripheral */
@@ -403,9 +404,9 @@ void Hardware::adcInit(){
 			| DMA_SxCR_PSIZE_0					// 16 bit periph
 			| DMA_SxCR_MINC					// memory incremented
 			| DMA_SxCR_CIRC					// circular
-			| DMA_SxCR_DIR_0					// periph to mem
-			| DMA_SxCR_PFCTRL					// periph flow controler
-			| DMA_SxCR_TCIE					// transfer complete interrupt
+			//| DMA_SxCR_DIR_					// periph to mem
+			//| DMA_SxCR_PFCTRL					// no periph flow controler
+			//| DMA_SxCR_TCIE					// transfer complete interrupt
 			| DMA_SxCR_DMEIE					// direct mode error interrupt
 			| DMA_SxCR_TEIE					// transfer error interrupt
 			;		//
@@ -418,14 +419,14 @@ void Hardware::adcInit(){
 	if (hisr != 0) DMA2->HIFCR = hisr;
 
 
-	/* Enable all interrupts */
-	DMA2_Stream0->CR  |= 0l
-			| DMA_SxCR_TCIE 		// transfer complete
-			| DMA_SxCR_HTIE 		// half transfer
-			| DMA_SxCR_TEIE 		// transfer error
-			| DMA_SxCR_DMEIE;		//
-	//	  DMA2_Stream0->CR |= DMA_SxCR_HTIE | DMA_SxCR_TCIE | DMA_SxCR_TEIE | DMA_SxCR_DMEIE;
-	//	  DMA2_Stream0->FCR |= DMA_SxFCR_FEIE; //DMA_IT_FE;
+//	/* Enable all interrupts */
+//	DMA2_Stream0->CR  |= 0l
+//			| DMA_SxCR_TCIE 		// transfer complete
+//			| DMA_SxCR_HTIE 		// half transfer
+//			| DMA_SxCR_TEIE 		// transfer error
+//			| DMA_SxCR_DMEIE;		//
+//	//	  DMA2_Stream0->CR |= DMA_SxCR_HTIE | DMA_SxCR_TCIE | DMA_SxCR_TEIE | DMA_SxCR_DMEIE;
+//	//	  DMA2_Stream0->FCR |= DMA_SxFCR_FEIE; //DMA_IT_FE;
 
 
 	/* Enable the Peripheral */
@@ -450,7 +451,7 @@ void Hardware::adcInit(){
 
 	/* Set ADC scan mode */
 	ADC1->CR1 |= ADC_CR1_SCAN
-			//			  | ADC_CR1_RES_0			// RES = 12bit 15ADCCLK,
+			//			  | ADC_CR1_RES_			// RES = 12bit 15ADCCLK,
 			// | ADC_CR1_EOCIE			// Interrupt enable on end of conversion
 			;
 
@@ -468,7 +469,7 @@ void Hardware::adcInit(){
 	ADC1->SMPR2 = val;		// 56 cycles /sampling time na wszystkich kanalach
 
 	// ilosc wejsc
-	ADC1->SQR1 |= (dataLength) << 20U;		// 7 - ilosc sekwencji
+	ADC1->SQR1 |= (dataLength -1) << 20U;		// 7 - ilosc sekwencji
 
 	//	IN0	PC0	reg.pok.		ADC_1_10
 	//	IN1	PC3	czujnikPodaj.	ADC_1_13
@@ -517,10 +518,7 @@ void Hardware::adcInit(){
 //	ADC1->SR &= ~ADC_SR_EOC;
 
 
-//	ADC1->CR2 |= 0
-//			| ADC_CR2_DMA
-////			| ADC_CR2_SWSTART
-//			;
+	ADC1->CR2 |= ADC_CR2_ADON;
 
 // przerwania NVIC
 	NVIC_SetPriority(IRQn_Type::DMA2_Stream0_IRQn, NVIC_EncodePriority(Hardware::nvicPriority, 0,0));
