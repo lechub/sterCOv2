@@ -215,6 +215,36 @@ static uint32_t pll_start(uint32_t crystal, uint32_t frequency)
 	return best_frequency_core;
 }
 
+static bool pll_start_lb(uint32_t crystal, uint32_t frequency){
+
+	uint32_t pllm = 8;
+	uint32_t plln = 128;
+	uint32_t pllp = 4;
+
+	RCC->CR |=  RCC_CR_HSEON;				// enable HSE clock
+//	RCC_CR_HSEON_bb = 1;					// enable HSE clock
+	flash_latency(frequency);				// configure Flash latency for desired frequency
+
+	RCC->PLLCFGR = (pllm << RCC_PLLCFGR_PLLM_bit) | (plln << RCC_PLLCFGR_PLLN_bit) | ((pllp / 2 - 1) << RCC_PLLCFGR_PLLP_bit) | RCC_PLLCFGR_PLLQ_DIV9 | RCC_PLLCFGR_PLLSRC;	// configure PLL factors, always divide USB clock by 9
+
+	// prescalery - wszystkie x1
+	RCC->CFGR = RCC_CFGR_PPRE2_DIV1 | RCC_CFGR_PPRE1_DIV1 | RCC_CFGR_HPRE_DIV1;	// AHB - no prescaler, APB1 - divide by 1, APB2 - divide by 1
+
+	while (!RCC->CR & RCC_CR_HSERDY);// RCC_CR_HSERDY_bb);				// wait for stable clock
+
+	//RCC_CR_PLLON_bb = 1;					// enable PLL
+	RCC->CR |=  RCC_CR_PLLON;
+
+	//while (!RCC_CR_PLLRDY_bb);				// wait for PLL lock
+	while (!RCC->CR & RCC_CR_PLLRDY);				// wait for PLL lock
+
+	RCC->CFGR |= RCC_CFGR_SW_PLL;			// change SYSCLK to PLL
+	while (((RCC->CFGR) & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);	// wait for switch
+
+	return true;
+
+}
+
 
 /*------------------------------------------------------------------------*//**
  * \brief Enables FPU
@@ -275,13 +305,13 @@ void Hardware::init(){
 
 	// Procesor i zegar zainicjowany
 
-	flash_latency(32000000);
-	pll_start(8000000, 32000000);
+	//flash_latency(32000000);
+	pll_start_lb(8000000, 32000000);
 	fpu_enable();
 
-	rccInit();
-
 	SystemCoreClockUpdate();	// na wszelki wypadek
+
+	rccInit();
 
 	if (SysTick_Config( SystemCoreClock / SYSTICK_FREQUENCY_HZ)) {
 		errorDispatch(Hardware::ErrorCode::Failure);
@@ -381,20 +411,22 @@ void Hardware::adcInit(){
 			;		//
 
 
-
-
-	/* Enable all interrupts */
-	//hdma->Instance->CR  |= DMA_IT_TC | DMA_IT_HT | DMA_IT_TE | DMA_IT_DME;
-
-	//	  DMA2_Stream0->CR |= DMA_SxCR_HTIE | DMA_SxCR_TCIE | DMA_SxCR_TEIE | DMA_SxCR_DMEIE;
-
-	//	  DMA2_Stream0->FCR |= DMA_SxFCR_FEIE; //DMA_IT_FE;
-
 	// kasowanie zdarzen
 	uint32_t lisr = DMA2->LISR;
 	if (lisr != 0) DMA2->LIFCR = lisr;
 	uint32_t hisr = DMA2->HISR;
 	if (hisr != 0) DMA2->HIFCR = hisr;
+
+
+	/* Enable all interrupts */
+	DMA2_Stream0->CR  |= 0l
+			| DMA_SxCR_TCIE 		// transfer complete
+			| DMA_SxCR_HTIE 		// half transfer
+			| DMA_SxCR_TEIE 		// transfer error
+			| DMA_SxCR_DMEIE;		//
+	//	  DMA2_Stream0->CR |= DMA_SxCR_HTIE | DMA_SxCR_TCIE | DMA_SxCR_TEIE | DMA_SxCR_DMEIE;
+	//	  DMA2_Stream0->FCR |= DMA_SxFCR_FEIE; //DMA_IT_FE;
+
 
 	/* Enable the Peripheral */
 	DMA2_Stream0->CR |=  DMA_SxCR_EN;	// poszly konie
@@ -412,17 +444,19 @@ void Hardware::adcInit(){
 	/* Set the ADC clock prescaler */
 	ADC->CCR |=
 			ADC_CCR_TSVREFE |							// Temperature sensor enabled
-			ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1			// prescaler PCLK2 /8
+			ADC_CCR_ADCPRE_0 | ADC_CCR_ADCPRE_1			// prescaler PCLK2 /8 -> ADCCLK = 32MHz/8 = 4MHz
+
 	;
 
 	/* Set ADC scan mode */
 	ADC1->CR1 |= ADC_CR1_SCAN
 			//			  | ADC_CR1_RES_0			// RES = 12bit 15ADCCLK,
-			//			| ADC_CR1_EOCIE			// Interrupt enable on end of conversion
+			// | ADC_CR1_EOCIE			// Interrupt enable on end of conversion
 			;
 
 
 	// Sample time register
+	// Tconv = 56 + 12 cycles = 68 AdcCycles -> 68/4MHz = 17us
 	uint32_t smp = ADC_SMPR1_SMP10_0 |ADC_SMPR1_SMP10_1; // 56 cycles /sampling time na wszystkich kanalach
 	uint32_t val = 0;
 	for (int i = 0 ; i < 9; i++){
@@ -462,7 +496,8 @@ void Hardware::adcInit(){
 
 	/* Enable or disable ADC DMA continuous request */
 	ADC1->CR2 |= 0ul
-			//			  ADC_CR2_ALIGN |
+			//			  | ADC_CR2_ALIGN
+			| ADC_CR2_EOCS	// EOC ustawione po kazdej konwersji, Overrun wlaczone
 			| ADC_CR2_DMA 	// lecimy DMA - pozniej
 			| ADC_CR2_DDS 	// wznawiamy DMA po ostatniej konwersji
 			| ADC_CR2_CONT
@@ -486,6 +521,14 @@ void Hardware::adcInit(){
 //			| ADC_CR2_DMA
 ////			| ADC_CR2_SWSTART
 //			;
+
+// przerwania NVIC
+	NVIC_SetPriority(IRQn_Type::DMA2_Stream0_IRQn, NVIC_EncodePriority(Hardware::nvicPriority, 0,0));
+	NVIC_EnableIRQ(IRQn_Type::DMA2_Stream0_IRQn);
+
+	NVIC_SetPriority(IRQn_Type::ADC_IRQn, NVIC_EncodePriority(Hardware::nvicPriority, 0,0));
+	NVIC_EnableIRQ(IRQn_Type::ADC_IRQn);
+
 
 	ADC1->CR2 |= ADC_CR2_SWSTART;
 
