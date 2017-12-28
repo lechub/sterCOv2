@@ -24,7 +24,6 @@
 
 
 
-
 class Pomiar{
 
 public:
@@ -40,11 +39,16 @@ public:
 		count = 7,	// ilosc wejsc = 6
 	} Analogi;
 
+	static constexpr int32_t TEMPERARURE_ERROR = 999000;
 
 
 
 private:
 	//uint8_t nrAdc;
+	static constexpr int32_t R1 = 1000;
+	static constexpr int32_t U1 = 3300;
+	static constexpr int32_t MAXADC = 4095;
+	static constexpr int32_t RESISTANCE_ERROR = 10000;
 
 	static uint16_t getPomiarRaw(Analogi nr);
 
@@ -66,10 +70,10 @@ private:
 	};
 
 
-	static int32_t aproximateCentigrades(int32_t resistance){
+	static int32_t aproximateCentigrades(int32_t resistance_mOhm){
 		uint8_t zakres;
 		for (zakres = 0; zakres < KTY_SAMPLE_COUNT; zakres++){
-			if (resistance < KTY81_2K_tempTab[zakres][1]) break;
+			if (resistance_mOhm < KTY81_2K_tempTab[zakres][1]) break;
 		}
 //
 //		int32_t t1 = KTY81_2K_tempTab[zakres][0];
@@ -80,12 +84,20 @@ private:
 		int32_t r1 = KTY81_2K_tempTab[zakres-1][1];
 		int32_t t2 = KTY81_2K_tempTab[zakres][0];
 		int32_t r2 = KTY81_2K_tempTab[zakres][1];
-		int32_t result = t1 + ((resistance - r1)*(t2 - t1))/(r2 - r1);
+		int32_t result = t1 + ((resistance_mOhm - r1)*(t2 - t1))/(r2 - r1);
+		if ((result < -5000)||(result > 20000)) result = RESISTANCE_ERROR;
 		return result;
 	}
 
-	static int32_t rawAdcToCentigrade(uint16_t rawAdc){
+	static int32_t getResistance(uint16_t rawAdcValue){
+		if (rawAdcValue >= MAXADC) return RESISTANCE_ERROR;
+		return (R1 * rawAdcValue)/(MAXADC - rawAdcValue);
+	}
 
+	static int32_t rawAdcToCentigrade(uint16_t rawAdc){
+		int32_t resist = getResistance(rawAdc);
+		int32_t result = aproximateCentigrades(resist);
+		return result;
 	}
 
 

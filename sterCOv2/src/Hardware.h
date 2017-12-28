@@ -21,7 +21,7 @@ public:
 	static constexpr uint32_t SYSTICK_FREQUENCY_HZ = 1000;
 
 	typedef enum{
-		OK, Incident, Failure,
+		OK, Incident, Failure, DMA_FAIL, ADC_FAIL,
 	}ErrorCode;
 
 
@@ -35,6 +35,7 @@ public:
 	static void WDOG_Init();
 	static void WDOG_Reload();
 	static void NVIC_init();
+	static bool adcDmaError;
 
 	//static inline void I2C_Init(){ i2c_init(i2c, I2C_TIMEOUT_MS, getTickMs); }
 
@@ -55,7 +56,9 @@ public:
 		case Failure:
 			while (true){;}// ToDo mruganie dioda
 			break;
-		case Incident:
+		case Incident: break;
+		case DMA_FAIL: adcDmaError = true; break;
+		case ADC_FAIL: adcDmaError = true; break;
 		case OK:
 			// Todo zasygnalizowanie
 			break;

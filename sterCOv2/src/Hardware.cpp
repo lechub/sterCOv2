@@ -578,6 +578,7 @@ void Hardware::delayMs(uint32_t milis){
 }
 
 
+bool Hardware::adcDmaError  = false;
 
 void DMA2_Stream0_IRQHandler(void){
 	static volatile uint32_t dmairq = 1;
@@ -588,6 +589,10 @@ void DMA2_Stream0_IRQHandler(void){
 	uint32_t hisr = DMA2->HISR;
 	if (hisr != 0) DMA2->HIFCR = hisr;
 
+	// if (lisr & DMA_LISR_TCIF0) ; //  transfer complete
+	// if (lisr & DMA_LISR_HTIF0) ; // half transfer
+	if (lisr & DMA_LISR_DMEIF0) Hardware::errorDispatch(Hardware::ErrorCode::DMA_FAIL);	// transfer error
+	if (lisr & DMA_LISR_FEIF0) Hardware::errorDispatch(Hardware::ErrorCode::DMA_FAIL);	// direct mode error
 }
 
 void DMA1_Stream0_IRQHandler(void){
@@ -599,9 +604,12 @@ void ADC_IRQHandler(void){
 	static volatile uint32_t adcirq = 1;
 	adcirq++;
 	uint32_t sr = ADC1->SR;
-	if (sr & ADC_SR_EOC){
-		adcirq--;
+	if (sr & ADC_SR_EOC){;}		// end of channel conversion
+	if (sr & ADC_SR_OVR) {
+		ADC1->SR &= ~ ADC_SR_OVR;
+		Hardware::errorDispatch(Hardware::ErrorCode::ADC_FAIL);	// direct mode error
 	}
+	if (sr & ADC_SR_AWD) {;}	// analog Watchdog event
 }
 
 
