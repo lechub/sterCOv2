@@ -23,7 +23,6 @@
 //	IN5	PA4	32		termik
 
 
-
 class Pomiar{
 
 public:
@@ -41,6 +40,8 @@ public:
 
 	static constexpr int32_t TEMPERARURE_ERROR = 999000;
 
+	static const uint16_t * TS_CAL1_30oC;
+	static const uint16_t * TS_CAL2_110oC;
 
 
 private:
@@ -50,24 +51,12 @@ private:
 	static constexpr int32_t MAXADC = 4095;
 	static constexpr int32_t RESISTANCE_ERROR = 10000;
 
+
 	static uint16_t getPomiarRaw(Analogi nr);
 
 	static constexpr uint8_t KTY_SAMPLE_COUNT = 12;
 	static constexpr uint8_t KTY_COLUMNS = 2;
-	static constexpr int32_t KTY81_2K_tempTab[KTY_SAMPLE_COUNT][KTY_COLUMNS] = {
-			{0,		1630},
-			{1000,	1772},
-			{2000,	1922},
-			{2500,	2000},
-			{3000,	2080},
-			{4000,	2245},
-			{5000,	2417},
-			{6000,	2597},
-			{7000,	2785},
-			{8000,	2980},
-			{9000,	3182},
-			{10000,	3392},
-	};
+	static const int32_t KTY81_2K_tempTab[KTY_SAMPLE_COUNT][KTY_COLUMNS];
 
 
 	static int32_t aproximateCentigrades(int32_t resistance_mOhm){
@@ -100,27 +89,35 @@ private:
 		return result;
 	}
 
+	static int32_t uPTemperature(uint16_t rawAdc);
 
 public:
-	//	Pomiar(//EnumPomiar pom,
-	//			uint8_t adcNr){
-	//		nrAdc = adcNr;
-	//	}
 
 	static uint8_t getIloscWejsc(){ return count; };
-
 
 	/** Zwraca pomiar w miliwoltach, miliamperach, miliCelsjuszach itd.
 	 *
 	 */
 	static int32_t getPomiar(Analogi nrAdc){
-		uint32_t result;
-		result = getPomiarRaw(nrAdc);
-		return result;
+		uint16_t adcVal = getPomiarRaw(nrAdc);
+		switch(nrAdc){
+		case REG_POKOJ:
+		case TERMIK:
+			return adcVal < (MAXADC/2);
+			break;
+		case TEMP_PODAJNIKA:
+		case TEMP_CO:
+		case TEMP_CWU:
+		case UNUSED:
+			return rawAdcToCentigrade(adcVal);
+		case TEMP_uP:
+			return uPTemperature(adcVal);
+		case count:
+		default: break;
+		}
+		return adcVal;
 	}
 
-
-	//	static void * getDataTablePtr(){ return (void*)dataTable; }
 	static volatile uint16_t * getDataTablePtr();
 };
 
