@@ -28,15 +28,26 @@ class Pomiar{
 public:
 
 	typedef enum {
-		REG_POKOJ = 0,
-		TEMP_PODAJNIKA = 1,
-		TEMP_CO = 2,
-		TEMP_CWU = 3,
-		TERMIK = 4,
+		TEMP_CWU = 0,
+		TEMP_CO = 1,
+		TEMP_PODAJNIKA = 2,
+		TERMIK = 3,
+		REG_POKOJ = 4,
 		UNUSED = 5,
 		TEMP_uP = 6,
 		count = 7,	// ilosc wejsc = 6
 	} Analogi;
+
+//	typedef enum {
+//		REG_POKOJ = 0,
+//		TEMP_PODAJNIKA = 1,
+//		TEMP_CO = 2,
+//		TEMP_CWU = 3,
+//		TERMIK = 4,
+//		UNUSED = 5,
+//		TEMP_uP = 6,
+//		count = 7,	// ilosc wejsc = 6
+//	} Analogi;
 
 	static constexpr int32_t TEMPERARURE_ERROR = 999000;
 

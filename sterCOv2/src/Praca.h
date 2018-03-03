@@ -104,6 +104,7 @@ public:
 	}
 
 	void pracuj(){
+		timeTick(TIME_PERIOD_PRACUJ_MS);
 		if (mode == Mode::MANUAL){
 			pracujManual();
 		}else{

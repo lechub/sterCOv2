@@ -36,6 +36,10 @@ public:
 		gpio->setup(Gpio::GpioMode::OUTPUT, Gpio::GpioOType::PushPull, Gpio::GpioPuPd::NoPull, Gpio::GpioSpeed::MediumSpeed);
 	}
 
+//	Silnik * getNextSilnik(){
+//		return nextSilnik;
+//	}
+
 	/**
 	 * wlacza gpio dla silnika
 	 */
@@ -80,11 +84,11 @@ public:
 		static uint8_t krok = 0;
 		krok++;
 		if (krok > 10) krok = 0;
-		Silnik * sil = firstSilnik;
+		Silnik * sil;
+		sil = firstSilnik;
 		while(sil != nullptr){
-			if (sil->turnedOn){
+			if (sil->isTurnedOn()){
 				sil->switchLevel(sil->wypelnienie >= krok);
-				sil = sil->nextSilnik;
 			}else{
 				sil->switchOff();
 			}

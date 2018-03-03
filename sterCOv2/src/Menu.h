@@ -49,12 +49,14 @@ public:
 
 private:
 
+	static constexpr uint32_t REFRESH_DELAY_MS = 1888;
+
 	Sterownik * ster;
 	Keyboard * keys;
 	TextLcd * lcd;
 	Praca * praca;
 
-
+	uint32_t refreshDelay;
 
 	EKRAN ekran;
 	Parameter::Nazwa editParam = Parameter::Nazwa::NONE;

@@ -15,8 +15,16 @@
 
 void Menu::poll(){
 	Keyboard::Key key = keys->getKey();
-	if (key == Keyboard::Key::NONE) return;
-
+	if (key == Keyboard::Key::NONE){
+		refreshDelay += HMI::TIME_PERIOD_MONITOR_MS;
+		if (refreshDelay > REFRESH_DELAY_MS){
+			uint16_t val = Parameter::getValue(editParam);
+			showEkran(val);
+			refreshDelay = 0;
+		}
+		return;
+	}
+	refreshDelay = 0;
 
 
 	//		//		//********** DEBUG ************

@@ -102,7 +102,7 @@ public:
 		gpio->BSRR = (1<<pinNr);
 	}
 	inline void pinSetDown(){
-		gpio->BSRR = (1<<(pinNr+16));
+		gpio->BSRR = (1<<(pinNr + 16l));
 	}
 
 	inline void pinSet(bool newstate){ newstate? pinSetUp() : pinSetDown(); }

@@ -160,16 +160,29 @@ void Praca::checkPompy(){
 }
 
 void Praca::checkAlarmy(){
-	int32_t temp = sterCO->getTempCO();
+	int32_t tempCO = sterCO->getTempCO();
+	int32_t tempCWU = sterCO->getTempCWU();
+	int32_t tempPod = sterCO->getTempPodajnika();
+//	uint32_t alarmPiec = Parameter::getValue(Parameter::Nazwa::ALARM_PIEC);
 	uint32_t alarmSpadku = Parameter::getValue(Parameter::Nazwa::ALARM_SPADKU_TEMP);
 	uint32_t alarmPodajnik = Parameter::getValue(Parameter::Nazwa::ALARM_TEMP_PODAJNIKA);
-	if ( temp > alarmPodajnik ){
+	bool alarm = false;
+	if ( tempPod > alarmPodajnik ){
 		setMode(WYGASZANIE,0);
 		sterCO->setAlarmPodajnik();
+		alarm = true;
 	}
-	if ( temp > alarmSpadku ){
+
+//	if ( tempCO < alarmPiecaCo ){
+//		setMode(WYGASZANIE,0);
+//		sterCO->setAlarmSpadekTemp();
+//		alarm = true;
+//	}
+
+	if ( tempCO < alarmSpadku ){
 		setMode(WYGASZANIE,0);
 		sterCO->setAlarmSpadekTemp();
+		alarm = true;
 	}
 
 }

@@ -455,10 +455,15 @@ void Hardware::adcInit(){
 			// | ADC_CR1_EOCIE			// Interrupt enable on end of conversion
 			;
 
-
 	// Sample time register
 	// Tconv = 56 + 12 cycles = 68 AdcCycles -> 68/4MHz = 17us
-	uint32_t smp = ADC_SMPR1_SMP10_0 |ADC_SMPR1_SMP10_1; // 56 cycles /sampling time na wszystkich kanalach
+	constexpr uint32_t SMPR56_cycles =  ADC_SMPR1_SMP10_1 | ADC_SMPR1_SMP10_0;	// 56 cycles /sampling time na wszystkich kanalach
+	constexpr uint32_t SMPR84_cycles =  ADC_SMPR1_SMP10_2;
+	constexpr uint32_t SMPR112_cycles =  ADC_SMPR1_SMP10_2 | ADC_SMPR1_SMP10_0;
+	constexpr uint32_t SMPR144_cycles =  ADC_SMPR1_SMP10_2 | ADC_SMPR1_SMP10_1;
+	constexpr uint32_t SMPR480_cycles =  ADC_SMPR1_SMP10_2 | ADC_SMPR1_SMP10_1 | ADC_SMPR1_SMP10_0;
+
+	uint32_t smp =  SMPR480_cycles;
 	uint32_t val = 0;
 	for (int i = 0 ; i < 9; i++){
 		val |= smp << (3 * i);
