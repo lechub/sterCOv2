@@ -200,6 +200,7 @@ void STM32F4_i2c::irqError(){
 ////	}
 ////	return false;
 //}
+
 inline void STM32F4_i2c::makeStamp(){ timeStamp = QuickTask::getCounter(); }
 
 void STM32F4_i2c::cyclicJob(){
