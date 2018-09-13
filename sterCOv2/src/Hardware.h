@@ -83,8 +83,8 @@ private:
  extern "C" {
 #endif
 
-void I2C1_EV_IRQHandler(void) __attribute__ ((interrupt));
-void I2C1_ER_IRQHandler(void) __attribute__ ((interrupt));
+//void I2C1_EV_IRQHandler(void) __attribute__ ((interrupt));
+//void I2C1_ER_IRQHandler(void) __attribute__ ((interrupt));
 void DMA1_Stream0_IRQHandler(void) __attribute__ ((interrupt));
 void DMA2_Stream0_IRQHandler(void) __attribute__ ((interrupt));
 void ADC_IRQHandler(void) __attribute__ ((interrupt));

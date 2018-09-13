@@ -10,8 +10,13 @@
 
 #include <stdint.h>
 #include "Hardware.h"
-#include "STM32F4i2c.h"
+//#include "STM32F4i2c.h"
 #include "FrameBuffer.h"
+
+//using STM32F4xx;
+
+#include "I2C.h"
+
 
 
 #define LCD5V 1		//
@@ -23,26 +28,42 @@ public:
 	// ---------------------- Constant Definition ----------------------------------
 	static constexpr  uint16_t ST7032I_ADDRESS = 0x3E;
 
-	static constexpr  uint8_t LCD_CLR		= 0x01;		// LCD Return home
-	static constexpr  uint8_t LCD_HOME		= 0x02;		// LCD Return home
-	static constexpr  uint8_t LCD_ENTRY 	= 0x06;		// Set LCD Entry Mode
-	static constexpr  uint8_t LCD_C2L		= 0b010000;		// Move Cursor to the left
-	static constexpr  uint8_t LCD_C2R		= 0b010100;		// Move Cursor to the right
-	static constexpr  uint8_t LCD_D2L		= 0x18;		// Move display to the left
-	static constexpr  uint8_t LCD_D2R		= 0x1C;		// Move display to the right
+	typedef enum {
+		LCD_CLR		= 0x01,		// LCD Return home
+		LCD_HOME		= 0x02,		// LCD Return home
+		LCD_ENTRY 	= 0x06,		// Set LCD Entry Mode
+		LCD_C2L		= 0b010000,		// Move Cursor to the left
+		LCD_C2R		= 0b010100,		// Move Cursor to the right
+		LCD_D2L		= 0x18,		// Move display to the left
+		LCD_D2R		= 0x1C,		// Move display to the right
 
-	static constexpr  uint8_t LCD_ON		= 0x0E;		// Turn on LCD and Cursor
-	static constexpr  uint8_t LCD_OFF		= 0x08;		// Turn off LCD
-	static constexpr  uint8_t CURSOR_LINE	= 0b01110;		// Turn on cursor - line
-	static constexpr  uint8_t CURSOR_BLINK		= 0b01111;		// Turn on cursor - blink
-	static constexpr  uint8_t CURSOR_INVISIBLE	= 0b01100;		// Turn off cursor
+		LCD_ON		= 0x0E,		// Turn on LCD and Cursor
+		LCD_OFF		= 0x08,		// Turn off LCD
+		CURSOR_LINE	= 0b01110,		// Turn on cursor - line
+		CURSOR_BLINK		= 0b01111,		// Turn on cursor - blink
+		CURSOR_INVISIBLE	= 0b01100,		// Turn off cursor
+	}LcdCommand;
 
+//	static constexpr  uint8_t LCD_CLR		= 0x01;		// LCD Return home
+//	static constexpr  uint8_t LCD_HOME		= 0x02;		// LCD Return home
+//	static constexpr  uint8_t LCD_ENTRY 	= 0x06;		// Set LCD Entry Mode
+//	static constexpr  uint8_t LCD_C2L		= 0b010000;		// Move Cursor to the left
+//	static constexpr  uint8_t LCD_C2R		= 0b010100;		// Move Cursor to the right
+//	static constexpr  uint8_t LCD_D2L		= 0x18;		// Move display to the left
+//	static constexpr  uint8_t LCD_D2R		= 0x1C;		// Move display to the right
+//
+//	static constexpr  uint8_t LCD_ON		= 0x0E;		// Turn on LCD and Cursor
+//	static constexpr  uint8_t LCD_OFF		= 0x08;		// Turn off LCD
+//	static constexpr  uint8_t CURSOR_LINE	= 0b01110;		// Turn on cursor - line
+//	static constexpr  uint8_t CURSOR_BLINK		= 0b01111;		// Turn on cursor - blink
+//	static constexpr  uint8_t CURSOR_INVISIBLE	= 0b01100;		// Turn off cursor
+//
 	static constexpr  uint8_t LCD_CGRAM_ADDR = 0x40;	// Start address of LCD CGRAM
 	static constexpr  uint8_t LCD_CGMAX 	= 64;			// Max CGRAM bytes
 
 	static constexpr  uint8_t LCD_COL 	= 16;
 	static constexpr  uint8_t LCD_ROW 	= 2;
-	static constexpr  uint8_t LCD_CHAR	= LCD_COL*LCD_ROW;
+	static constexpr  uint8_t LCD_CHARS_AMOUNT	= LCD_COL*LCD_ROW;
 
 	static constexpr  uint8_t LCD_DDRAM_WRITE	= 0x80;
 	static constexpr  uint8_t LCD_L1	= 0x00;	//0x80;
@@ -78,8 +99,10 @@ private:
 		WAIT1,
 		LINE2_SEND,
 		WAIT2,
-		CURSOR_SET,
+		CURSOR_POS_SET,
 		WAIT3,
+		CURSOR_MODE_SET,
+		WAIT4,
 	}LcdStage;
 
 	LcdStage lcdStage;
@@ -88,21 +111,20 @@ private:
 	bool sendData(uint8_t cmd);
 	bool sendCmdOrData(bool isCMD, uint8_t byteValue);
 
-	inline void delayMs(uint32_t milis){ i2c->dirtyDelayMs(milis); }
+	//inline void delayMs(uint32_t milis){ i2c->dirtyDelayMs(milis); }
 
-	STM32F4_i2c * i2c = nullptr;
+	STM32F4xx::I2C * i2c = nullptr;
 
 public:
 
-	ST7032iFB(FrameBuffer *framebuffer) {
-		frameBuffer = framebuffer;
-		lcdStage = LcdStage::WAIT_START;
+	ST7032iFB() {
+
 	}
 	virtual ~ST7032iFB();
 
-	void init(STM32F4_i2c * i2cPtr);
+	void init(STM32F4xx::I2C * i2cPort);
 
-	void poll(){ i2c->poll(); }
+	//void poll(){ i2c->poll(); }
 
 	bool gotoXY(uint8_t Row, uint8_t Col);
 	bool print(char znak);
@@ -144,7 +166,10 @@ public:
 	}
 
 
-	void irq_job();
+	bool sendCommand(LcdCommand cmd);
+	bool sendByte(uint8_t dataByte);
+	bool sendLine(uint32_t lineNr);
+	void process();	// wywolywac cyklicznie
 
 };
 
