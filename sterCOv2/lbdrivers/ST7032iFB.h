@@ -16,7 +16,7 @@
 //using STM32F4xx;
 
 #include "I2C.h"
-
+#include "Gpio.h"
 
 
 #define LCD5V 1		//
@@ -30,7 +30,7 @@ public:
 
 	typedef enum {
 		LCD_CLR		= 0x01,		// LCD Return home
-		LCD_HOME		= 0x02,		// LCD Return home
+		LCD_HOME	= 0x02,		// LCD Return home
 		LCD_ENTRY 	= 0x06,		// Set LCD Entry Mode
 		LCD_C2L		= 0b010000,		// Move Cursor to the left
 		LCD_C2R		= 0b010100,		// Move Cursor to the right
@@ -75,6 +75,7 @@ public:
 	static constexpr uint8_t DATA = 0b01000000;
 
 	FrameBuffer * frameBuffer;
+	Fifo		* fifo;
 
 	//	static constexpr uint8_t CGRAM[LCD_CGMAX] =
 	//	{
@@ -114,54 +115,41 @@ private:
 	//inline void delayMs(uint32_t milis){ i2c->dirtyDelayMs(milis); }
 
 	STM32F4xx::I2C * i2c = nullptr;
+	Gpio * gpioBackLight = nullptr;
+	Gpio * gpioResetLCD = nullptr;
 
 public:
 
-	ST7032iFB() {
-
-	}
+	ST7032iFB() {	}
 	virtual ~ST7032iFB();
 
-	void init(STM32F4xx::I2C * i2cPort);
+	void init(STM32F4xx::I2C * i2cPort, Gpio * backLightPin, Gpio * resetLCDPin);
 
-	//void poll(){ i2c->poll(); }
+	void setResetPin(bool newstate){ gpioResetLCD->pinSet(newstate); }
+	void setBackLight(bool newstate){ gpioBackLight->pinSet(newstate); }
 
 	bool gotoXY(uint8_t Row, uint8_t Col);
 	bool print(char znak);
 	bool print(const char * str);
 	bool clearScreen(void);
-	bool homeScreen(void){
-		sendCommand(0b00000010);
-		delayMs(5);
-		return true;
-	}
+	bool lcd_Home(void){ return sendCommand(LcdCommand::LCD_HOME); }
+	bool lcd_ON(){ return sendCommand(LcdCommand::LCD_ON); }
+	bool lcd_OFF(){ return sendCommand(LcdCommand::LCD_OFF); }
+	bool cursorLeft(void){ return sendCommand(LCD_C2L);	}
+	bool cursorRight(void){ return sendCommand(LCD_C2R);	}
 
-	bool lcd_ON();
-	bool lcd_OFF();
-
-	bool cursorLeft(void){
-		sendCommand(LCD_C2L);
-		//delayMs(5);
-		return true;
-	}
-
-	bool cursorRight(void){
-		sendCommand(LCD_C2R);
-		//delayMs(5);
-		return true;
-	}
+	void delayMs(uint32_t milis);
 
 	bool cursorSet(FrameBuffer::CursorMode cursorMode){
-		uint8_t cmmd = CURSOR_INVISIBLE;
+		uint8_t cmd = CURSOR_INVISIBLE;
 		switch(cursorMode){
-		case FrameBuffer::CursorMode::DASH: cmmd = CURSOR_LINE; break;
-		case FrameBuffer::CursorMode::SOLID: cmmd = CURSOR_LINE; break;
-		case FrameBuffer::CursorMode::BLINK: cmmd = CURSOR_BLINK; break;
+		case FrameBuffer::CursorMode::DASH: cmd = CURSOR_LINE; break;
+		case FrameBuffer::CursorMode::SOLID: cmd = CURSOR_LINE; break;
+		case FrameBuffer::CursorMode::BLINK: cmd = CURSOR_BLINK; break;
 		case FrameBuffer::CursorMode::HIDDEN:
 		default: break;
 		}
-		sendCommand(cmmd);
-		//delayMs(5);
+		sendCommand(cmd);
 		return true;
 	}
 

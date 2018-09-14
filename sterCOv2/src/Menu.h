@@ -9,7 +9,7 @@
 #define MENU_H_
 
 #include "Keyboard.h"
-#include "TextLcd.h"
+#include "FrameBuffer.h"
 #include "Sterownik.h"
 //#include ""
 //#include "HMI.h"
@@ -53,7 +53,7 @@ private:
 
 	Sterownik * ster;
 	Keyboard * keys;
-	TextLcd * lcd;
+	FrameBuffer * lcd;
 	Praca * praca;
 
 	uint32_t refreshDelay;
@@ -65,7 +65,7 @@ private:
 
 public:
 
-	void init(Sterownik * pSter, Keyboard * pKeys, TextLcd * pLcd){
+	void init(Sterownik * pSter, Keyboard * pKeys, FrameBuffer * pLcd){
 		ster = pSter;
 		keys = pKeys;
 		lcd = pLcd;

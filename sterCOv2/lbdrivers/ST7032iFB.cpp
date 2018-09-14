@@ -16,6 +16,8 @@ uint8_t dataTab2[ST7032iFB::LCD_CHARS_AMOUNT +5];
 Fifo dataFifo = Fifo(dataTab2, ST7032iFB::LCD_CHARS_AMOUNT +5);
 
 
+
+
 ST7032iFB::~ST7032iFB() {
 	// TODO Auto-generated destructor stub
 }
@@ -23,29 +25,15 @@ ST7032iFB::~ST7032iFB() {
 // Functions for ST7032I
 
 
-bool ST7032iFB::sendCmdOrData(bool isCMD, uint8_t byteValue){
-	uint8_t buf[2];
-	buf[0] = isCMD ? CMD : DATA;
-	buf[1] = byteValue;
-	bool ret = i2c->masterTransmit(buf, 2);
-	return ret;
-}
-
-bool ST7032iFB::sendCommand(uint8_t cmd){
-	return sendCmdOrData(true, cmd);
-}
-
-bool ST7032iFB::sendData(uint8_t data){
-	return sendCmdOrData(false, data);
-}
-
 
 // LCD initialization procedure
-void ST7032iFB::init(STM32F4xx::I2C * i2cPort){
+void ST7032iFB::init(STM32F4xx::I2C * i2cPort, Gpio * backLightPin, Gpio * resetLCDPin){
 	frameBuffer = &frame_buffer;
+	fifo = &dataFifo;
 	lcdStage = LcdStage::WAIT_START;
 	i2c = i2cPort;
 	i2c->setSlaveAdres(ST7032I_ADDRESS);
+
 
 	//Hardware::i2cInit();
 	setResetPin(false);
@@ -85,46 +73,28 @@ void ST7032iFB::init(STM32F4xx::I2C * i2cPort){
 }
 
 
-bool ST7032iFB::lcd_ON(){
-	sendCommand(LCD_ON);
-	//delayMs(10);
-	return true;
+
+bool ST7032iFB::sendCmdOrData(bool isCMD, uint8_t byteValue){
+	fifo->flush();
+	fifo->put(isCMD ? CMD : DATA);
+	fifo->put(byteValue);
+	return i2c->masterTransmit(fifo);
 }
 
-bool ST7032iFB::lcd_OFF(){
-	sendCommand(LCD_OFF) ;
-	//delayMs(10);
-	return true;
-}
-
-
-bool ST7032iFB::sendByte(uint8_t dataByte){
-	uint32_t lineLength = frameBuffer->getCOLUMNS();
-	if (lineNr >= frameBuffer->getROWS()) return false;
-	uint32_t offset = lineNr * lineLength;
-	return i2c->masterTransmit(frameBuffer->getBuffer() + offset, lineLength);
-}
-
-bool ST7032I::sendCmdOrData(bool isCMD, uint8_t byteValue){
-	uint8_t buf[2];
-	buf[0] = isCMD ? CMD : DATA;
-	buf[1] = byteValue;
-	bool ret = i2c->masterTransmit(buf, 2);
-	return ret;
-}
-
-bool ST7032I::sendCommand(uint8_t cmd){
+bool ST7032iFB::sendCommand(uint8_t cmd){
 	return sendCmdOrData(true, cmd);
 }
 
-bool ST7032I::sendData(uint8_t data){
+bool ST7032iFB::sendData(uint8_t data){
 	return sendCmdOrData(false, data);
 }
 
 
 bool ST7032iFB::sendLine(uint32_t lineNr){
-	if (frameBuffer->getLine(lineNr, dataBuffer))
-	return i2c->masterTransmit(frameBuffer->getBuffer() + offset, lineLength);
+	fifo->flush();
+	fifo->put(DATA);
+	if (!frameBuffer->getLine(lineNr, fifo)) return false;
+	return i2c->masterTransmit(fifo);
 }
 
 

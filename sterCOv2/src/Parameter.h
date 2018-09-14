@@ -155,15 +155,17 @@ public:
 		if (par == nullptr) return 99;
 		if (value > par->maxValue) value = par->maxValue;
 		if (value < par->minValue) value = par->minValue;
-		return value;
+		return uint16_t(value);
 	}
 
 
 	static bool saveDefaultValues(){
+		bool result = true;
 		for (uint16_t i = 1; i < uint16_t(Nazwa::LAST_PARAMETER); i++){
 			Nazwa param = Nazwa(i);
-			setValue(param, getDefaultValue(param) );
+			if (!setValue(param, getDefaultValue(param) )) result = false;
 		}
+		return result;
 	}
 
 

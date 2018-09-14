@@ -37,18 +37,18 @@ private:
 
 public:
 	Sterownik * ster;
-	TextLcd * lcd;
+	FrameBuffer * lcd;
 	Praca * praca;
 	Keyboard * keyboard;
 	Menu * menu;
 
 	HMI(){;}
 
-	HMI(Sterownik * psterownik, Keyboard * pkeys, TextLcd * plcd, Menu * pmenu){
+	HMI(Sterownik * psterownik, Keyboard * pkeys, FrameBuffer * plcd, Menu * pmenu){
 		init(psterownik, pkeys, plcd, pmenu);
 	}
 
-	void init(Sterownik * sterownik, Keyboard * pkeys, TextLcd * plcd, Menu * pmenu) {
+	void init(Sterownik * sterownik, Keyboard * pkeys, FrameBuffer * plcd, Menu * pmenu) {
 		ster = sterownik;
 		praca = ster->getPraca();
 		lcd = plcd;
@@ -61,7 +61,7 @@ public:
 
 
 	void monitor(){
-		lcd->poll();
+		//lcd->poll();
 		menu->poll();
 	}
 

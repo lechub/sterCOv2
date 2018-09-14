@@ -9,7 +9,7 @@
 
 #include <ctype.h>
 #include "Keyboard.h"
-#include "TextLcd.h"
+#include "FrameBuffer.h"
 #include "HMI.h"
 #include "Parameter.h"
 
@@ -333,9 +333,9 @@ void Menu::printPattern(const char * pattern, uint32_t value){
 			offset++;
 		}while (ptr >= pattern);
 		lcd->cursorLeft(offset);
-		lcd->setCursorMode(CURSOR::BLINK);
+		lcd->cursorMode(FrameBuffer::CursorMode::BLINK);
 	}else{
-		lcd->setCursorMode(CURSOR::NONE);
+		lcd->cursorMode(FrameBuffer::CursorMode::HIDDEN);
 	}
 }
 

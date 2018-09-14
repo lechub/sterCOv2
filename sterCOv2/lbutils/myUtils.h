@@ -79,6 +79,8 @@ static inline uint8_t * my_memcpy (uint8_t * to, const uint8_t * from, uint32_t 
 
 inline bool isDigitAscii(char a){ return (a >= '0') && (a <= '9');	}
 
+bool numberWithPattern(const char * pattern, uint32_t initValue, char * buffer);
+
 //----------------------------------------------------
 #ifdef __cplusplus
 }

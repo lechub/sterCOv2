@@ -11,6 +11,7 @@
 #include "Sterownik.h"
 #include "Keyboard.h"
 #include <string.h>
+#include "FrameBuffer.h"
 
 
 class EditValue {
@@ -25,7 +26,7 @@ private:
 	uint32_t value;
 	size_t len = 0;
 	Keyboard * keyb;
-	TextLcd * lcd;
+	FrameBuffer * lcd;
 	const char *pattern;
 	uint16_t cursorPos = 0;
 	char bufor [BUFFLEN];

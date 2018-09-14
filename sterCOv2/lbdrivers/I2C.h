@@ -17,6 +17,7 @@ namespace STM32F4xx {
 #include "Fifo.h"
 
 class I2C {
+
 public:
 	I2C() {
 		// TODO Auto-generated constructor stub

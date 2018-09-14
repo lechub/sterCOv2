@@ -9,7 +9,9 @@
 #define FRAMEBUFFER_H_
 
 #include <stdint.h>
+#include <string.h>
 #include "Fifo.h"
+#include "myUtils.h"
 
 class FrameBuffer {
 public:
@@ -24,6 +26,8 @@ private:
 		uint32_t COLUMNS;// = 16;
 		uint32_t ROWS;// = 2;
 		uint32_t BUFFERSIZE;// = ROWS*COLUMNS;
+
+		static constexpr uint32_t MAX_TEMP_BUFFER = 100UL;
 
 		//uint8_t bytes[COLUMNS][ROWS];
 		uint8_t * bytes;
@@ -65,8 +69,20 @@ public:
 			if (++cursorPosition >= BUFFERSIZE) cursorPosition = 0;
 		}
 
+		void cursorRight(uint32_t charsNr){
+			while (charsNr-- > 0){
+				cursorRight();
+			}
+		}
+
 		void cursorLeft(void){
 			cursorPosition = (cursorPosition == 0) ? BUFFERSIZE -1 : cursorPosition -1;
+		}
+
+		void cursorLeft(uint32_t charsNr){
+			while (charsNr-- > 0){
+				cursorLeft();
+			}
 		}
 
 		bool gotoXY(uint32_t col, uint32_t row){
@@ -88,7 +104,7 @@ public:
 			}
 		}
 
-		void printXY(const char * str, uint32_t col, uint32_t row){
+		void printXY(uint32_t col, uint32_t row, const char * str){
 			gotoXY(col, row);
 			print(str);
 		}
@@ -105,6 +121,14 @@ public:
 
 		void cursorMode(CursorMode mode){
 			cursor = mode;
+		}
+
+		bool printNumbersWithPattern(const char *pattern, uint32_t value){
+			char buff[MAX_TEMP_BUFFER];
+			if (strlen(pattern) >= MAX_TEMP_BUFFER) return false;
+			bool result = numberWithPattern(pattern, value, (char*)buff);
+			print((const char*)buff);
+			return result;
 		}
 };
 

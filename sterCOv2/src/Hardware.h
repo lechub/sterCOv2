@@ -9,7 +9,7 @@
 #define HARDWARE_H_
 
 #include "stm32f4xx.h"
-#include "STM32F4i2c.h"
+//#include "STM32F4i2c.h"
 
 #include "Fifo.h"
 
