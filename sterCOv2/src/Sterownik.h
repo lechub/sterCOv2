@@ -74,9 +74,12 @@ public:
 	//	Gpio termik = Gpio(GPIOA,1);
 
 
-	int32_t getTempPodajnika(){return Pomiar::getPomiar(Pomiar::Analogi::TEMP_PODAJNIKA)/10; }
-	int32_t getTempCO(){return Pomiar::getPomiar(Pomiar::Analogi::TEMP_CO)/10; }
-	int32_t getTempCWU(){return Pomiar::getPomiar(Pomiar::Analogi::TEMP_CWU)/10; }
+	int32_t getTempPodajnika(){return 10l * Pomiar::getPomiar(Pomiar::Analogi::TEMP_PODAJNIKA); }
+	int32_t getTempCO(){return 10l * Pomiar::getPomiar(Pomiar::Analogi::TEMP_CO); }
+	int32_t getTempCWU(){return 10l * Pomiar::getPomiar(Pomiar::Analogi::TEMP_CWU); }
+
+
+
 
 //	Pomiar tempPodajnika = Pomiar(1);
 //	Pomiar tempCO = Pomiar(2);

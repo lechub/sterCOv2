@@ -18,9 +18,9 @@ class Parameter {
 private:
 	static uint16_t nrOfParams;// = 0;
 
-	uint16_t nr; 		// indeks parametru w eepromie
-	uint16_t actualValue;
-	const char * name;
+//	uint16_t nr; 		// indeks parametru w eepromie
+//	uint16_t actualValue;
+//	const char * name;
 
 	static bool setEEpromValue(uint16_t virtAdr, uint16_t value);
 	static int32_t getEEpromValue(uint16_t virtAdr);
@@ -166,9 +166,45 @@ public:
 		}
 	}
 
+	static inline uint32_t getPodajnikPracaMs(){
+		return 100ul * Parameter::getValue(Parameter::PODAJNIK_PRACA); }
+	static inline uint32_t getPodajnikPrzerwaMs(){
+		return 1000ul * Parameter::getValue(Parameter::PODAJNIK_PRZERWA); }
+	static inline uint32_t getPodajnikOpoznMs(){
+		return 100ul * Parameter::getValue(Parameter::PODAJNIK_OPOZNIENIE); }
+
+	static inline uint32_t getPodtrzymPracaMs(){
+		return 100ul * Parameter::getValue(Parameter::PODTRZYMANIE_PRACA); }
+	static inline uint32_t getPodtrzymPrzerwaMs(){
+		return 1000ul * Parameter::getValue(Parameter::PODTRZYMANIE_PRZERWA); }
+
+	static inline uint32_t getOpoznDmuchawyMs(){
+		return 100ul * Parameter::getValue(Parameter::OPOZNIENIE_DMUCHAWY); }
+
+	static inline uint32_t getTempWlaczPompeCOMiliC(){
+		return 100ul * Parameter::getValue(Parameter::POMPA_CO_TEMP_ZALACZ); }
+
+	static inline uint32_t getTempWlaczPompeCWUMiliC(){
+		return 100ul * Parameter::getValue(Parameter::POMPA_CWU_TEMP_ZALACZ); }
+
+	static inline uint32_t getTempCOUstawionaMiliC(){
+		return 100ul * Parameter::getValue(Parameter::TEMPERATURA_CO); }
+
+	static inline uint32_t getHisterezeCOMiliC(){
+		return 100ul * Parameter::getValue(Parameter::HISTEREZA_CO_TEMP); }
+
+	static inline uint32_t getHisterezaCWUMiliC(){
+		return 100ul * Parameter::getValue(Parameter::HISTEREZA_CO_TEMP); }
+
+	static inline uint32_t getAlarmTempPodajnikaMiliC(){
+		return 100ul * Parameter::getValue(Parameter::ALARM_TEMP_PODAJNIKA); }
+	static inline uint32_t getAlarmSpadkuTempCOMiliC(){
+		return 100ul * Parameter::getValue(Parameter::ALARM_SPADKU_TEMP); }
+
+	static inline uint32_t getDmuchawaMoc(){
+		return Parameter::getValue(Parameter::DMUCHAWA_MOC); }
 
 };
-
 
 
 //	static uint16_t getDefaultValue(Nazwa nazwa){

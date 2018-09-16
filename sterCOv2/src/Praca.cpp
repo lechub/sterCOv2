@@ -43,17 +43,17 @@ void Praca::pracujAutomat(){
 		if (isPodajnikTimeOut()){		//
 			if (sterCO->podajnik->isTurnedOn()){	// koniec podawania
 				sterCO->podajnik->turnOff();
-				setPodajnikTime(Parameter::getValue(Parameter::Nazwa::PODAJNIK_PRZERWA));	// ustaw czas przerwy
+				setPodajnikTime(Parameter::getPodajnikPrzerwaMs());	// ustaw czas przerwy
 			}else{
 				sterCO->podajnik->turnOn();
-				setPodajnikTime(Parameter::getValue(Parameter::Nazwa::PODAJNIK_PRACA));	// ustaw czas podawania
+				setPodajnikTime(Parameter::getPodajnikPracaMs());	// ustaw czas podawania
 			}
 		}
 		break;
 	case PODTRZYMANIE:{
 		int32_t tempHi = sterCO->getTempCO();
-		int32_t tempLo = tempHi - Parameter::getValue(Parameter::Nazwa::HISTEREZA_CO_TEMP);
-		if ( tempLo > Parameter::getValue(Parameter::Nazwa::TEMPERATURA_CO)){
+		int32_t tempLo = tempHi - Parameter::getHisterezeCOMiliC();  //Parameter::getValue(Parameter::Nazwa::HISTEREZA_CO_TEMP);
+		if ( tempLo > Parameter::getTempCOUstawionaMiliC()){//Parameter::getValue(Parameter::Nazwa::TEMPERATURA_CO)){
 			break;
 		}
 		// ToDo sprawdzic jak to dziala dokladnie
@@ -61,10 +61,10 @@ void Praca::pracujAutomat(){
 		if (isPodajnikTimeOut()){		//
 			if (sterCO->podajnik->isTurnedOn()){	// koniec podawania
 				sterCO->podajnik->turnOff();
-				setPodajnikTime(Parameter::getValue(Parameter::Nazwa::PODTRZYMANIE_PRZERWA));	// ustaw czas przerwy
+				setPodajnikTime(Parameter::getPodtrzymPrzerwaMs());//Parameter::getValue(Parameter::Nazwa::PODTRZYMANIE_PRZERWA));	// ustaw czas przerwy
 			}else{
 				sterCO->podajnik->turnOn();
-				setPodajnikTime(Parameter::getValue(Parameter::Nazwa::PODTRZYMANIE_PRACA));	// ustaw czas podawania
+				setPodajnikTime(Parameter::getPodtrzymPracaMs()); //Parameter::getValue(Parameter::Nazwa::PODTRZYMANIE_PRACA));	// ustaw czas podawania
 			}
 		}
 	}
@@ -137,22 +137,22 @@ void Praca::checkPompy(){
 	int32_t temp;
 	// CO
 	temp = sterCO->getTempCO();
-	uint16_t par = Parameter::getValue(Parameter::Nazwa::POMPA_CO_TEMP_ZALACZ);
+	uint16_t par = Parameter::getTempWlaczPompeCOMiliC();//:getValue(Parameter::Nazwa::POMPA_CO_TEMP_ZALACZ);
 	if (temp >= par){
 		sterCO->pompaCO->turnOn();
 	}else{
-		temp += Parameter::getValue(Parameter::Nazwa::HISTEREZA_CO_TEMP);
+		temp += Parameter::getHisterezeCOMiliC();//:getValue(Parameter::Nazwa::HISTEREZA_CO_TEMP);
 		if (temp < par){
 			sterCO->pompaCO->turnOff();
 		}
 	}
 	// CWU
 	temp = sterCO->getTempCWU();
-	par = Parameter::getValue(Parameter::Nazwa::POMPA_CWU_TEMP_ZALACZ);
+	par = Parameter::getTempWlaczPompeCWUMiliC();//:getValue(Parameter::Nazwa::POMPA_CWU_TEMP_ZALACZ);
 	if (temp >= par){
 		sterCO->pompaCWU->turnOn();
 	}else{
-		temp += Parameter::getValue(Parameter::Nazwa::HISTEREZA_CWU_TEMP);
+		temp += Parameter::getTempWlaczPompeCWUMiliC();//:getValue(Parameter::Nazwa::HISTEREZA_CWU_TEMP);
 		if (temp < par){
 			sterCO->pompaCWU->turnOff();
 		}
@@ -164,8 +164,8 @@ void Praca::checkAlarmy(){
 	int32_t tempCWU = sterCO->getTempCWU();
 	int32_t tempPod = sterCO->getTempPodajnika();
 //	uint32_t alarmPiec = Parameter::getValue(Parameter::Nazwa::ALARM_PIEC);
-	uint32_t alarmSpadku = Parameter::getValue(Parameter::Nazwa::ALARM_SPADKU_TEMP);
-	uint32_t alarmPodajnik = Parameter::getValue(Parameter::Nazwa::ALARM_TEMP_PODAJNIKA);
+	uint32_t alarmSpadku = Parameter::getAlarmSpadkuTempCOMiliC(); //::getValue(Parameter::Nazwa::ALARM_SPADKU_TEMP);
+	uint32_t alarmPodajnik = Parameter::getAlarmTempPodajnikaMiliC();//::getValue(Parameter::Nazwa::ALARM_TEMP_PODAJNIKA);
 	bool alarm = false;
 	if ( tempPod > alarmPodajnik ){
 		setMode(WYGASZANIE,0);

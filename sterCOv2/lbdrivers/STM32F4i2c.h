@@ -8,6 +8,7 @@
 #ifndef STM32F4I2C_H_
 #define STM32F4I2C_H_
 
+#include <stdint.h>
 #include "stm32f4xx.h"
 #include "Gpio.h"
 #include "Fifo.h"

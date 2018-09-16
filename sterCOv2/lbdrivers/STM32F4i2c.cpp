@@ -5,7 +5,7 @@
  *      Author: lechu
  */
 
-#include <STM32F4i2c.h>
+#include "STM32F4i2c.h"
 #include "QuickTask.h"
 #include "Hardware.h"
 #include "stm32f4xx.h"

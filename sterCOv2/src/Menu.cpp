@@ -347,7 +347,7 @@ void Menu::showEkran(uint16_t val){
 	switch(ekran){
 	case e_AUTOMAT:///------->1234567890123456<
 	{
-		uint32_t tpiec = ster->getTempCO();
+		uint32_t tpiec = ster->getTempCO()/100;
 		param = Parameter::Nazwa::TEMPERATURA_CO;
 		const char * patt = Parameter::getParamPattern(param);
 		lcd->gotoXY(0,0);
@@ -513,11 +513,11 @@ void Menu::showEkran(uint16_t val){
 	{//---------------------->1234567890123456<
 		uint32_t temp;
 		lcd->gotoXY(0,0);
-		temp = ster->getTempCWU();
+		temp = ster->getTempCWU()/100;
 		//--------------------------->1234567890123456<
 		lcd->printNumbersWithPattern("T. CWU:  00.0 oC",temp);
 		lcd->gotoXY(1,0);
-		temp = ster->getTempPodajnika();
+		temp = ster->getTempPodajnika()/100;
 		//--------------------------->1234567890123456<
 		lcd->printNumbersWithPattern("T. pod:  00.0 oC",temp);
 	}break;

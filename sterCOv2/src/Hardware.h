@@ -8,6 +8,7 @@
 #ifndef HARDWARE_H_
 #define HARDWARE_H_
 
+#include <stdint.h>		// uint8_t, int32_t, itp.
 #include "stm32f4xx.h"
 #include "STM32F4i2c.h"
 
