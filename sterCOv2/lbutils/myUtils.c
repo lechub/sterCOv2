@@ -110,31 +110,7 @@ bool itoaWithPattern(char * const pattern, uint32_t initValue){
 	return initValue == 0;
 }
 
-//constexpr char patternChar = '0';
-//constexpr char patternCharInv = '#';
-//uint32_t iloscZnakow = 0;
-//uint32_t iloscCyfr = 0;
-//const char * txt = pattern;
-//while (*txt != '\0'){
-//	if ((*txt == patternChar)||(*txt == patternCharInv)) iloscCyfr++;
-//	iloscZnakow++;
-//	txt++;
-//}
-//	bool zeros = true;	// wiodace zera
-//	if ((power10(iloscCyfr)-1) < initValue) initValue = 1; // jesli sie nie miesci to ==1
-//	txt = pattern;
-//	while(*txt != '\0'){
-//		if (*txt == patternChar){
-//			uint32_t nr = power10(iloscCyfr-1);
-//			uint8_t cyfra = initValue / nr;
-//			initValue %= nr;
-//			print(cyfra + '0');
-//		}else{
-//			print(*txt);
-//		}
-//		txt++;
-//	}
-//	return true;
+
 
 
 uint32_t power10(uint32_t power){
@@ -158,4 +134,15 @@ char * my_strcpy (char * to, const char * from, bool withTerminator){
 	}
 	return to;
 }
+
+
+/**
+ * Wyswietla liczby według wzorca
+ * np.pattern= "000:00.00" i initValue=123456 wyswietli "012:34.56"
+ */
+bool numberWithPattern(const char * pattern, uint32_t initValue, char * buffer){
+	my_strcpy(buffer, pattern, true);	// skopiowanie wzoru razem z terminacja
+	return itoaWithPattern(buffer, initValue);
+}
+
 

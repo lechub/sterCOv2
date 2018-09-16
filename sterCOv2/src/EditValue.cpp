@@ -51,8 +51,8 @@
 			}
 			lcd->print(bufor[i]);
 		}// for
-		lcd->cursorLeft(uint16_t(len - digitOffset));
-		lcd->setCursorMode(CURSOR::BLINK); // wlacz mruganie
+		lcd->cursorLeft(len - digitOffset);
+		lcd->cursorMode(FrameBuffer::CursorMode::BLINK); // wlacz mruganie
 
 		//		lcd->setCursorMode(TextLcd::CursorMode::HIDE);		//  schowanie kursora
 

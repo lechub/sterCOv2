@@ -157,14 +157,14 @@ public:
 		constexpr uint32_t BitMask = 0b01111;
 		uint32_t val = alternateFunction;
 		if (pinNr < 8){
-			uint8_t offset = pinNr * 4;
+			uint8_t offset = uint8_t(pinNr * 4);
 			uint32_t tmp = gpio->AFR[0];
 			tmp &= ~(BitMask << offset);
 			tmp |= val << offset;
 			gpio->AFR[0] = tmp;
 		}
 		if ((pinNr > 8)&&(pinNr < 16)){
-			uint8_t offset = (pinNr - 8) * 4;
+			uint8_t offset = uint8_t((pinNr - 8) * 4);
 			uint32_t tmp = gpio->AFR[1];
 			tmp &= ~(BitMask << offset);
 			tmp |= val << offset;

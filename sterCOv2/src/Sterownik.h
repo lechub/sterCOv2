@@ -14,7 +14,6 @@
 #include "Praca.h"
 #include "Parameter.h"
 #include "Keyboard.h"
-#include "TextLcd.h"
 #include "Praca.h"
 
 
